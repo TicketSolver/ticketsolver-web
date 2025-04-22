@@ -6,18 +6,17 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Eye, EyeOff, CheckCircle2 } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { toast } from "sonner"
 
 const inviteCodeSchema = z.object({
   inviteCode: z.string().min(6, "Código de convite inválido")
 })
-
 
 const registerSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -64,20 +63,19 @@ export function RegisterForm() {
 
   async function onSubmitCode(data: InviteCodeFormValues) {
     setIsLoading(true)
-    
+
     try {
       console.log("Verificando código:", data.inviteCode)
-      
       await new Promise(resolve => setTimeout(resolve, 1000))
 
       setInviteData({
-        email: "email@exemple.com",
-        name: "name"
+        email: "usuario.precadastrado@empresa.com",
+        name: "Usuário Pré-cadastrado"
       })
-      
-      registerForm.setValue("email", "email@exemple.com")
-      registerForm.setValue("name", "name")
-      
+
+      registerForm.setValue("email", "usuario.precadastrado@empresa.com")
+      registerForm.setValue("name", "Usuário Pré-cadastrado")
+
       setCodeVerified(true)
     } catch (error) {
       console.error("Erro ao verificar código:", error)
@@ -88,18 +86,15 @@ export function RegisterForm() {
 
   async function onSubmitRegister(data: RegisterFormValues) {
     setIsLoading(true)
-    
-    try {
 
+    try {
       console.log("Dados de registro:", data)
-      
+
       await new Promise(resolve => setTimeout(resolve, 1000))
+
       router.push("/auth/login?registered=true")
     } catch (error) {
       console.error("Erro ao registrar:", error)
-      toast.error("Erro ao registrar conta", {
-        description: "Verifique os dados e tente novamente."
-      })
     } finally {
       setIsLoading(false)
     }
@@ -114,8 +109,8 @@ export function RegisterForm() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center">Criar Conta</CardTitle>
         <CardDescription className="text-center">
-          {codeVerified 
-            ? "Complete seu cadastro para acessar o TicketSolver" 
+          {codeVerified
+            ? "Complete seu cadastro para acessar o TicketSolver"
             : "Digite o código de convite fornecido pelo administrador"}
         </CardDescription>
       </CardHeader>
@@ -136,7 +131,7 @@ export function RegisterForm() {
                   </FormItem>
                 )}
               />
-              
+
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Verificando..." : "Verificar Código"}
               </Button>
@@ -152,7 +147,7 @@ export function RegisterForm() {
                 </AlertDescription>
               </Alert>
             )}
-            
+
             <Form {...registerForm}>
               <form onSubmit={registerForm.handleSubmit(onSubmitRegister)} className="space-y-4">
                 <FormField
@@ -162,13 +157,13 @@ export function RegisterForm() {
                     <FormItem>
                       <FormLabel>Nome Completo</FormLabel>
                       <FormControl>
-                        <Input {...field} disabled />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={registerForm.control}
                   name="email"
@@ -176,13 +171,13 @@ export function RegisterForm() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input {...field} disabled />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={registerForm.control}
                   name="password"
@@ -191,10 +186,10 @@ export function RegisterForm() {
                       <FormLabel>Senha</FormLabel>
                       <div className="relative">
                         <FormControl>
-                          <Input 
-                            type={showPassword ? "text" : "password"} 
-                            placeholder="Crie uma senha" 
-                            {...field} 
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Crie uma senha"
+                            {...field}
                           />
                         </FormControl>
                         <Button
@@ -204,14 +199,14 @@ export function RegisterForm() {
                           className="absolute right-0 top-0 h-full px-3"
                           onClick={() => setShowPassword(!showPassword)}
                         >
-                          {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                         </Button>
                       </div>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={registerForm.control}
                   name="confirmPassword"
@@ -220,10 +215,10 @@ export function RegisterForm() {
                       <FormLabel>Confirmar Senha</FormLabel>
                       <div className="relative">
                         <FormControl>
-                          <Input 
-                            type={showConfirmPassword ? "text" : "password"} 
-                            placeholder="Confirme sua senha" 
-                            {...field} 
+                          <Input
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder="Confirme sua senha"
+                            {...field}
                           />
                         </FormControl>
                         <Button
@@ -233,14 +228,14 @@ export function RegisterForm() {
                           className="absolute right-0 top-0 h-full px-3"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         >
-                          {showConfirmPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                          {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                         </Button>
                       </div>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Finalizando..." : "Finalizar Cadastro"}
                 </Button>
