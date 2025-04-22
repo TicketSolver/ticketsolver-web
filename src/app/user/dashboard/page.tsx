@@ -127,7 +127,10 @@ export default function UserDashboard() {
           </Table>
         </CardContent>
         <CardFooter className="flex justify-end">
-          <Button variant="outline" size="sm">Ver histórico completo</Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/user/tickets">
+              Ver histórico completo</Link>
+          </Button>
         </CardFooter>
       </Card>
 
@@ -139,7 +142,7 @@ export default function UserDashboard() {
         <CardContent className="py-6">
           <div className="text-center">
             <Monitor className="h-12 w-12 text-primary mx-auto" />
-            {}
+            { }
             <h3 className="text-lg font-medium my-2">
               Em breve, você poderá ceder o acesso remoto de seu dispositivo
             </h3>
