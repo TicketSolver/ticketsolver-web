@@ -37,3 +37,19 @@ export async function fetchStats(): Promise<Stats> {
     }
     return res.json()
 }
+
+export async function fetchTicket(id: number): Promise<Ticket> {
+    if (USE_MOCK) {
+        await delay(200)
+        const t = mockTickets.find((t) => t.id === id)
+        if (!t){
+            throw new Error("Ticket não encontrado")
+        }
+        return t
+    }
+    const res = await fetch(`/api/tickets/${id}`)
+    if (!res.ok){
+        throw new Error("Falha ao buscar ticket")
+    }
+    return res.json()
+}
