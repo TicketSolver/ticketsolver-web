@@ -1,14 +1,14 @@
+
 export interface Ticket {
-    id: number
-    title: string
-    description?: string
-    status: TicketStatus
-    priority: TicketPriority
-    category: TicketCategory
-    createdAt: string
-    updatedAt?: string
-    createdById: number
-    assignedToId?: number
+    id: string | number;
+    title: string;
+    status: number;
+    createdAt: string;
+    assignedToId: string
+    createdById: string | number;
+    category: TicketCategory;
+    priority: TicketPriority;
+    stats: TicketStatus;
 }
 
 export enum TicketCategory {

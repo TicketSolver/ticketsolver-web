@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 
-const API_BASE_URL = 'http://localhost:5271'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5271';
 
 export async function POST(req: Request) {
     try {

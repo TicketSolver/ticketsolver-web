@@ -1,5 +1,6 @@
 "use client"
 
+import { useAuth } from "@/contexts/AuthContext"
 import { useEffect, useState } from "react"
 import {
   Ticket as IconTicket,
@@ -32,29 +33,39 @@ export default function UserDashboard() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
+  const { user } = useAuth() 
 
   useEffect(() => {
     async function load() {
+      if (!user) return;
+      
       setLoading(true)
       try {
-        const [s, t] = await Promise.all([fetchStats(), fetchTickets()])
+        const [s, t] = await Promise.all([fetchStats(), fetchTickets(5)])
         setStats(s)
         setTickets(t)
       } catch (err) {
-        console.error(err)
+        console.error("Erro ao carregar dados do dashboard:", err)
       } finally {
         setLoading(false)
       }
     }
-    load()
-  }, [])
-
-  if (loading || !stats) {
-    return <DashboardShell userRole="user" userName="Maria Souza">
-      <div>Carregando painel…</div>
+    
+    if (user) {
+      load()
+    }
+  }, [user]) 
+  if (!user) {
+    return <DashboardShell userRole="user" userName="Usuário">
+      <div>Você precisa estar logado para visualizar esta página.</div>
     </DashboardShell>
   }
 
+  if (loading || !stats) {
+    return <DashboardShell userRole="user" userName={user.name || "Usuário"}>
+      <div>Carregando painel…</div>
+    </DashboardShell>
+  }
   return (
     <DashboardShell userRole="user" userName="Maria Souza">
       <div className="flex justify-between items-center mb-6">
