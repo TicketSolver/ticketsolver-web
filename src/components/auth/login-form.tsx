@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -6,6 +7,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Eye, EyeOff } from "lucide-react"
+import { toast } from "sonner"
+
+import { login, saveAuthToken } from "@/services/auth" 
+import { getRoleFromToken, debugJwtToken } from "@/utils/jwt"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,11 +45,37 @@ export function LoginForm() {
     setIsLoading(true)
     
     try {
-      console.log("Dados de login:", data)
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      router.push("/dashboard")
+      const result = await login({
+        email: data.email,
+        password: data.password
+      })
+      
+      if (result.success && result.data?.token) {
+        saveAuthToken(result.data.token, data.rememberMe)
+        debugJwtToken(result.data.token);
+        const userRole = getRoleFromToken(result.data.token)
+        console.log('Role determinado:', userRole);
+        toast.success("Login realizado com sucesso!")
+        switch (userRole) {
+          case 'admin':
+            router.push('/admin/dashboard')
+            break
+          case 'technician':
+            router.push('/technician/dashboard')
+            break
+          case 'user':
+            router.push('/user/dashboard')
+            break
+          default:
+            console.warn('Não foi possível determinar o role, usando rota padrão');
+            router.push('/dashboard')
+        }
+      } else {
+        toast.error(result.message || "Credenciais inválidas")
+      }
     } catch (error) {
       console.error("Erro ao fazer login:", error)
+      toast.error("Erro ao tentar realizar login")
     } finally {
       setIsLoading(false)
     }
@@ -83,10 +114,10 @@ export function LoginForm() {
                   <FormLabel>Senha</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input 
-                        type={showPassword ? "text" : "password"} 
-                        placeholder="Senha" 
-                        {...field} 
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Senha"
+                        {...field}
                       />
                       <Button
                         type="button"
@@ -95,7 +126,7 @@ export function LoginForm() {
                         className="absolute right-0 top-0 h-full px-3"
                         onClick={() => setShowPassword(!showPassword)}
                       >
-                        {showPassword ? <Eye size={16}  /> :<EyeOff size={16} />}
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </Button>
                     </div>
                   </FormControl>
@@ -110,8 +141,8 @@ export function LoginForm() {
                 name="rememberMe"
                 render={({ field }) => (
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="rememberMe" 
+                    <Checkbox
+                      id="rememberMe"
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
