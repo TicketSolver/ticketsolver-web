@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server"
 import { getAuthToken } from "@/services/auth";
 import { parseJwt } from "@/utils/jwt";
-
+import { cookies } from "next/headers";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5271';
 
 export async function GET(
@@ -9,8 +9,9 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
-        const token = getAuthToken();
-        
+        const cookieStore = cookies();
+        const token = (await cookieStore).get('auth_token')?.value;
+
         if (!token) {
             return NextResponse.json(
                 { success: false, message: 'Não autorizado' },
@@ -19,7 +20,7 @@ export async function GET(
         }
 
         const ticketId = params.id;
-        
+
         const response = await fetch(`${API_BASE_URL}/api/Tickets/${ticketId}`, {
             method: 'GET',
             headers: {
@@ -65,7 +66,7 @@ export async function PUT(
 ) {
     try {
         const token = getAuthToken();
-        
+
         if (!token) {
             return NextResponse.json(
                 { success: false, message: 'Não autorizado' },
@@ -75,7 +76,7 @@ export async function PUT(
 
         const ticketId = params.id;
         const body = await request.json();
-        
+
         const response = await fetch(`${API_BASE_URL}/api/Tickets/${ticketId}`, {
             method: 'PUT',
             headers: {

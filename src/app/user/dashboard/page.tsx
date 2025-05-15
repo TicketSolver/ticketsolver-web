@@ -2,13 +2,13 @@
 
 import { useAuth } from "@/contexts/AuthContext"
 import { useEffect, useState } from "react"
-import {
-  Ticket as IconTicket,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Monitor,
-  Plus
+import { 
+  TicketIcon, 
+  Clock, 
+  CheckCircle2, 
+  AlertCircle, 
+  Monitor, 
+  Plus 
 } from "lucide-react"
 import Link from "next/link"
 
@@ -17,167 +17,221 @@ import { StatsCard } from "@/components/dashboard/cards/stats-card"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-import { fetchTickets, fetchStats, Stats } from "@/services/user-dashboard"
-import { Ticket } from "@/types/ticket"
+import { fetchTickets, fetchStats, type Stats } from "@/services/user-dashboard"
+import type { Ticket } from "@/types/ticket"
+import { getAuthToken } from "@/utils/auth"
 
 export default function UserDashboard() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [tickets, setTickets] = useState<Ticket[]>([])
-  const [loading, setLoading] = useState(true)
-  const { user } = useAuth() 
+  const [dataLoading, setDataLoading] = useState(true)
+  const { user, loading: authLoading, refreshUser } = useAuth()
+ 
+  useEffect(() => {
+    const token = getAuthToken();
+    console.log("Dashboard - Token existente:", !!token);
+
+    if (!user && token) {
+      console.log("Usuário não encontrado, mas token existe. Tentando atualizar...");
+      refreshUser();
+    }
+  }, []);
 
   useEffect(() => {
-    async function load() {
+    console.log("Dashboard - Estado da autenticação:", {
+      user: user ? `${user.name} (${user.role})` : "não autenticado",
+      loading: authLoading,
+    });
+
+    async function loadDashboardData() {
       if (!user) return;
-      
-      setLoading(true)
+
+      setDataLoading(true);
       try {
-        const [s, t] = await Promise.all([fetchStats(), fetchTickets(5)])
-        setStats(s)
-        setTickets(t)
+        console.log("Carregando dados do dashboard para usuário:", user.id);
+        const [statsData, ticketsData] = await Promise.all([
+          fetchStats(),
+          fetchTickets(5)
+        ]);
+
+        setStats(statsData);
+        setTickets(ticketsData);
+        console.log("Dados carregados com sucesso");
       } catch (err) {
-        console.error("Erro ao carregar dados do dashboard:", err)
+        console.error("Erro ao carregar dados do dashboard:", err);
       } finally {
-        setLoading(false)
+        setDataLoading(false);
       }
     }
-    
-    if (user) {
-      load()
+
+    if (user && !authLoading) {
+      loadDashboardData();
+    } else if (!authLoading) {
+      setDataLoading(false);
     }
-  }, [user]) 
-  if (!user) {
-    return <DashboardShell userRole="user" userName="Usuário">
-      <div>Você precisa estar logado para visualizar esta página.</div>
-    </DashboardShell>
+  }, [user, authLoading]);
+
+  if (authLoading) {
+    return (
+      <DashboardShell userRole="user" userName="">
+        <div className="flex flex-col items-center justify-center h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+          <p className="ml-3 text-lg">Carregando autenticação...</p>
+        </div>
+      </DashboardShell>
+    )
   }
 
-  if (loading || !stats) {
-    return <DashboardShell userRole="user" userName={user.name || "Usuário"}>
-      <div>Carregando painel…</div>
-    </DashboardShell>
+  if (!user) {
+    return (
+      <DashboardShell userRole="user" userName="">
+        <div className="text-center p-8">
+          <h2 className="text-2xl font-bold mb-4">Acesso Restrito</h2>
+          <p className="mb-6 text-muted-foreground">Você precisa estar autenticado para acessar esta página.</p>
+
+          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md mb-6 text-left max-w-lg mx-auto">
+            <h3 className="font-medium mb-2">Diagnóstico de autenticação:</h3>
+            <p><strong>Token encontrado:</strong> {getAuthToken() ? "Sim" : "Não"}</p>
+            <p className="mt-2 text-sm">O middleware detectou que você está autenticado, mas o sistema não conseguiu carregar seus dados.</p>
+          </div>
+
+          <div className="flex space-x-4 justify-center">
+            <Button asChild>
+              <Link href="/auth/login">Fazer Login</Link>
+            </Button>
+            <Button variant="outline" onClick={refreshUser}>
+              Tentar Novamente
+            </Button>
+          </div>
+        </div>
+      </DashboardShell>
+    )
   }
+
+
   return (
-    <DashboardShell userRole="user" userName="Maria Souza">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Meu Painel</h1>
+    <DashboardShell userRole={user.role} userName={user.name}>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
         <Button asChild>
-          <Link href="/user/new-ticket">
+          <Link href="/user/tickets/new">
             <Plus className="mr-2 h-4 w-4" /> Novo Chamado
           </Link>
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <StatsCard
-          title="Meus Chamados"
-          value={stats.total}
-          icon={IconTicket}
-          description="total de chamados abertos"
-        />
-        <StatsCard
-          title="Em Andamento"
-          value={stats.inProgress}
-          icon={Clock}
-          description="chamados sendo atendidos"
-        />
-        <StatsCard
-          title="Aguardando"
-          value={stats.waiting}
-          icon={AlertCircle}
-          description="pendentes de atendimento"
-        />
-        <StatsCard
-          title="Resolvidos"
-          value={stats.resolved}
-          icon={CheckCircle2}
-          description="no geral"
-        />
-      </div>
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Meus Chamados Recentes</CardTitle>
-          <CardDescription>Status dos seus últimos chamados abertos</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead>Técnico</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tickets.map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell className="font-medium">#{t.id}</TableCell>
-                  <TableCell>{t.title}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={statusClass(t.status)}>
-                      {statusText(t.status)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{new Date(t.createdAt).toLocaleString("pt-BR")}</TableCell>
-                  <TableCell>{t.assignedToId ? "Técnico #" + t.assignedToId : "—"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/user/tickets">
-              Ver histórico completo</Link>
-          </Button>
-        </CardFooter>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Acesso Remoto</CardTitle>
-          <CardDescription>Configuração para suporte remoto ao seu dispositivo</CardDescription>
-        </CardHeader>
-        <CardContent className="py-6">
-          <div className="text-center">
-            <Monitor className="h-12 w-12 text-primary mx-auto" />
-            { }
-            <h3 className="text-lg font-medium my-2">
-              Em breve, você poderá ceder o acesso remoto de seu dispositivo
-            </h3>
+      {dataLoading ? (
+        <div className="flex justify-center my-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <>
+          {/* Estatísticas */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+            <StatsCard
+              title="Chamados Abertos"
+              value={stats?.openTickets || 0}
+              icon={AlertCircle}
+              description="Aguardando atendimento"
+            />
+            <StatsCard
+              title="Em Andamento"
+              value={stats?.inProgressTickets || 0}
+              icon={Clock}
+              description="Sendo atendidos"
+            />
+            <StatsCard
+              title="Resolvidos"
+              value={stats?.resolvedTickets || 0}
+              icon={CheckCircle2}
+              description="Neste mês"
+            />
+            <StatsCard
+              title="Total"
+              value={stats?.totalTickets || 0}
+              icon={Monitor}
+              description="Todos os chamados"
+            />
           </div>
-        </CardContent>
-        <CardFooter className="border-t pt-4">
-          <Button variant="outline" className="w-full" disabled>
-            Configurações de Acesso Remoto
-          </Button>
-        </CardFooter>
-      </Card>
+
+          {/* Chamados Recentes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Chamados Recentes</CardTitle>
+              <CardDescription>
+                Seus últimos chamados abertos no sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {tickets.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Título</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Prioridade</TableHead>
+                      <TableHead>Data</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tickets.map((ticket) => (
+                      <TableRow key={ticket.id}>
+                        <TableCell className="font-medium">
+                          <Link href={`/user/tickets/${ticket.id}`} className="hover:underline">
+                            {ticket.title}
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            ticket.status === 0 ? "outline" :
+                              ticket.status === 1 ? "secondary" :
+                                ticket.status === 2 ? "default" : "outline"
+                          }>
+                            {ticket.status === 0 ? "Aberto" :
+                              ticket.status === 1 ? "Em andamento" :
+                                ticket.status === 2 ? "Resolvido" : "Desconhecido"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            ticket.priority === 0 ? "default" :
+                              ticket.priority === 1 ? "secondary" :
+                                ticket.priority === 2 ? "destructive" : "outline"
+                          }>
+                            {ticket.priority === 0 ? "Baixa" :
+                              ticket.priority === 1 ? "Média" :
+                                ticket.priority === 2 ? "Alta" : "Desconhecida"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {new Date(ticket.createdAt).toLocaleDateString('pt-BR')}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  <TicketIcon className="mx-auto h-12 w-12 opacity-20 mb-2" />
+                  <p>Nenhum chamado encontrado</p>
+                </div>
+              )}
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button variant="ghost" asChild>
+                <Link href="/user/tickets">Ver todos os chamados</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/user/tickets/new">
+                  <Plus className="mr-2 h-4 w-4" /> Novo Chamado
+                </Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        </>
+      )}
     </DashboardShell>
   )
-}
-
-function statusText(s: number) {
-  return ["Aberto", "Em andamento", "Resolvido", "Fechado"][s] ?? "—"
-}
-function statusClass(s: number) {
-  const map = [
-    "bg-blue-100 text-blue-800 border-blue-200",
-    "bg-yellow-100 text-yellow-800 border-yellow-200",
-    "bg-green-100 text-green-800 border-green-200",
-    "bg-gray-100 text-gray-800 border-gray-200",
-  ]
-  return map[s] || map[0]
 }

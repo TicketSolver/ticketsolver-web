@@ -1,71 +1,74 @@
-// src/utils/jwt.ts
-export function parseJwt(token: string): any {
+export function parseJwt(token: string) {
     try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(
-            window.atob(base64)
-                .split('')
-                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                .join('')
-        );
-        return JSON.parse(jsonPayload);
-    } catch (e) {
-        console.error('Erro ao decodificar token JWT', e);
-        return null;
-    }
-}
-
-export function getRoleFromToken(token: string): 'admin' | 'technician' | 'user' | null {
-    const decoded = parseJwt(token);
-    if (!decoded) return null;
-
-    let role = decoded.role;
-
-    if (!role && decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']) {
-        role = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-    }
-
-    if (!role) {
-        console.warn('Não foi possível encontrar o role no token JWT', decoded);
-        return null;
-    }
-
-    if (Array.isArray(role)) {
-        role = role[0];
-    }
-
-    switch (role) {
-        case '0':
-            return 'admin';
-        case '1':
-            return 'technician';
-        case '2':
-            return 'user';
-        default:
-            console.warn('Role desconhecido encontrado no token:', role);
+        if (!token || !token.includes('.')) {
+            console.error("Token inválido fornecido para parseJwt");
             return null;
+        }
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+            console.error("Token JWT inválido: não tem 3 partes");
+            return null;
+        }
+        const base64Url = parts[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+        const jsonPayload = Buffer.from(base64, 'base64').toString('utf-8');
+
+        return JSON.parse(jsonPayload);
+    } catch (error) {
+        console.error("Erro ao decodificar JWT:", error);
+        return null;
     }
 }
 
-export function debugJwtToken(token: string): void {
+export function getRoleFromToken(token: string): string | null {
     try {
         const decoded = parseJwt(token);
-        console.group('Detalhes do JWT Token');
-        console.log('Token completo decodificado:', decoded);
+        if (!decoded) return null;
 
-        console.log('Subject (nameid):', decoded.nameid);
-        console.log('Email:', decoded.email);
-        console.log('Role:', decoded.role);
-        console.log('Issued At:', new Date(decoded.iat * 1000).toLocaleString());
-        console.log('Expires At:', new Date(decoded.exp * 1000).toLocaleString());
-        console.log('Todas as claims:');
-        Object.keys(decoded).forEach(key => {
-            console.log(`  ${key}: ${decoded[key]}`);
-        });
+        const role =
+            decoded.role ||
+            decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+            decoded.Role ||
+            null;
 
-        console.groupEnd();
-    } catch (e) {
-        console.error('Erro ao debugar token JWT', e);
+        if (Array.isArray(role)) {
+            return role[0];
+        }
+
+        return role;
+    } catch (error) {
+        console.error("Erro ao extrair role do token:", error);
+        return null;
     }
+}
+
+export function getUserIdFromToken(token: string): string | null {
+    try {
+        const decoded = parseJwt(token);
+        if (!decoded) return null;
+
+
+        return decoded.sub || decoded.nameid || decoded.id || null;
+    } catch (error) {
+        console.error("Erro ao extrair ID do usuário do token:", error);
+        return null;
+    }
+}
+
+export function isTokenExpired(token: string): boolean {
+
+    try {
+        const decoded = parseJwt(token);
+        if (!decoded || !decoded.exp) return true;
+
+        const currentTime = Math.floor(Date.now() / 1000);
+        return decoded.exp < currentTime;
+    } catch (error) {
+        console.error("Erro ao verificar expiração do token:", error);
+        return true;
+
+    }
+
+
 }

@@ -59,19 +59,22 @@ export async function registerUser(data: RegisterRequest): Promise<BaseResponse<
 
 
 export async function login(credentials: LoginFormData): Promise<AuthResponse> {
-    const response = await fetch(`/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
-    })
-
-    if (!response.ok) {
-        throw new Error(`Erro ao fazer login: ${response.status}`)
+    const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(credentials)
+    });
+    const data = await response.json();
+    if (data.success && data.data?.token) {
+        console.log("Token recebido no login:", data.data.token.substring(0, 10) + "...");
+        console.log("Comprimento do token:", data.data.token.length);
+        return data;
     }
 
-    return response.json()
+    return { success: false, message: data.message || "Falha no login", data: null, errors: data.errors || null };
 }
-
 export function saveAuthToken(token: string, rememberMe: boolean): void {
     if (rememberMe) {
         localStorage.setItem("auth_token", token)

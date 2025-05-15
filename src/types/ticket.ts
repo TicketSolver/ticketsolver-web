@@ -2,8 +2,10 @@
 export interface Ticket {
     id: string | number;
     title: string;
+    description: string;
     status: number;
     createdAt: string;
+    updatedAt: string;
     assignedToId: string
     createdById: string | number;
     category: TicketCategory;
