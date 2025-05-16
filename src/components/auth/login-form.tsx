@@ -1,16 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
-import { useAuth } from "@/contexts/AuthContext"
-import { login } from "@/services/auth"
-import { getRoleFromToken, debugJwtToken } from "@/utils/jwt"
-
+//import { getRoleFromToken, debugJwtToken } from "@/utils/jwt"
+import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -27,10 +25,8 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export function LoginForm() {
-  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { login: authLogin } = useAuth()
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -40,49 +36,30 @@ export function LoginForm() {
       rememberMe: false,
     },
   })
+// async function onSubmit(data: LoginFormValues) {
 
+  
+// }
 async function onSubmit(data: LoginFormValues) {
   setIsLoading(true)
   
   try {
-    const result = await login({
+    const result = await signIn('credentials',
+      {
+      redirect: true,
       email: data.email,
       password: data.password
     })
-    
-    if (result.success && result.data?.token) {
-      authLogin(result.data.token, data.rememberMe)
-      
-      const userRole = getRoleFromToken(result.data.token)
-      console.log('Role determinado:', userRole);
-      toast.success("Login realizado com sucesso!")
-      if (userRole) {
-        switch (userRole) {
-          case 'admin':
-            router.push('/admin/dashboard')
-            break
-          case 'technician':
-            router.push('/technician/dashboard')
-            break
-          case 'user':
-            router.push('/user/dashboard')
-            break
-          default:
-            router.push(`/dashboard?role=${userRole}`)
-        }
-      } else {
-        router.push('/dashboard?role=user')
-      }
-    } else {
-      toast.error(result.message || "Credenciais inválidas")
-    }
-  } catch (error) {
+   } catch (error) {
     console.error("Erro ao fazer login:", error)
     toast.error("Erro ao tentar realizar login")
   } finally {
     setIsLoading(false)
   }
 }
+
+
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">

@@ -1,17 +1,17 @@
 "use client"
 
-import { useAuth } from "@/contexts/AuthContext"
 import { useEffect, useState } from "react"
-import { 
-  TicketIcon, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  Monitor, 
-  Plus 
+import {
+  TicketIcon,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Monitor,
+  Plus
 } from "lucide-react"
 import Link from "next/link"
-
+import { nextAuthConfig } from "@/lib/nextAuth"
+import { getServerSession } from 'next-auth'
 import { DashboardShell } from "@/components/dashboard/layout/dashboard-shell"
 import { StatsCard } from "@/components/dashboard/cards/stats-card"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
@@ -21,30 +21,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 import { fetchTickets, fetchStats, type Stats } from "@/services/user-dashboard"
 import type { Ticket } from "@/types/ticket"
-import { getAuthToken } from "@/utils/auth"
+import { useSession } from "next-auth/react"
 
 export default function UserDashboard() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [dataLoading, setDataLoading] = useState(true)
-  const { user, loading: authLoading, refreshUser } = useAuth()
- 
-  useEffect(() => {
-    const token = getAuthToken();
-    console.log("Dashboard - Token existente:", !!token);
-
-    if (!user && token) {
-      console.log("Usuário não encontrado, mas token existe. Tentando atualizar...");
-      refreshUser();
-    }
-  }, []);
+  const { data: session } = useSession();
+  const user = session?.user;
+  console.log(user?.id, user?.fullName, user?.role);
 
   useEffect(() => {
-    console.log("Dashboard - Estado da autenticação:", {
-      user: user ? `${user.name} (${user.role})` : "não autenticado",
-      loading: authLoading,
-    });
-
     async function loadDashboardData() {
       if (!user) return;
 
@@ -66,53 +53,13 @@ export default function UserDashboard() {
       }
     }
 
-    if (user && !authLoading) {
-      loadDashboardData();
-    } else if (!authLoading) {
-      setDataLoading(false);
-    }
-  }, [user, authLoading]);
+    loadDashboardData();
 
-  if (authLoading) {
-    return (
-      <DashboardShell userRole="user" userName="">
-        <div className="flex flex-col items-center justify-center h-[60vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-          <p className="ml-3 text-lg">Carregando autenticação...</p>
-        </div>
-      </DashboardShell>
-    )
-  }
-
-  if (!user) {
-    return (
-      <DashboardShell userRole="user" userName="">
-        <div className="text-center p-8">
-          <h2 className="text-2xl font-bold mb-4">Acesso Restrito</h2>
-          <p className="mb-6 text-muted-foreground">Você precisa estar autenticado para acessar esta página.</p>
-
-          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md mb-6 text-left max-w-lg mx-auto">
-            <h3 className="font-medium mb-2">Diagnóstico de autenticação:</h3>
-            <p><strong>Token encontrado:</strong> {getAuthToken() ? "Sim" : "Não"}</p>
-            <p className="mt-2 text-sm">O middleware detectou que você está autenticado, mas o sistema não conseguiu carregar seus dados.</p>
-          </div>
-
-          <div className="flex space-x-4 justify-center">
-            <Button asChild>
-              <Link href="/auth/login">Fazer Login</Link>
-            </Button>
-            <Button variant="outline" onClick={refreshUser}>
-              Tentar Novamente
-            </Button>
-          </div>
-        </div>
-      </DashboardShell>
-    )
-  }
+  },[]);
 
 
   return (
-    <DashboardShell userRole={user.role} userName={user.name}>
+    <DashboardShell userRole={user?.role ?? "user"} userName={user?.fullName ?? ""}>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <Button asChild>

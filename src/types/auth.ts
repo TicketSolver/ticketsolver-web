@@ -1,4 +1,4 @@
-// src/types/auth.ts
+import { DefaultSession, DefaultUser } from "next-auth"
 
 export interface LoginFormData {
   email: string
@@ -47,4 +47,10 @@ export interface RegisterRequest {
   email: string
   password: string
   key: string
+}
+declare module "next-auth" {
+    interface Session extends DefaultSession {
+        user: AppUser;
+    }
+    interface User extends DefaultUser, AppUser { }
 }

@@ -2,7 +2,6 @@
 import {
     BaseResponse,
     LoginFormData,
-    LoginResponse,
     RegisterRequest,
     VerifyInviteResponse
 } from "@/types/auth"
@@ -13,6 +12,12 @@ interface AuthResponse {
     message: string
     data: {
         token: string
+        user: {
+            id: string
+            email: string
+            name: string
+            role?: string
+        }
     } | null
     errors: any
 }
@@ -43,7 +48,7 @@ export async function verifyInviteCode(code: string): Promise<BaseResponse<Verif
 
 
 export async function registerUser(data: RegisterRequest): Promise<BaseResponse<any>> {
-    const response = await fetch(`/api/auth/register`, {
+    const response = await fetch(`/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -58,23 +63,42 @@ export async function registerUser(data: RegisterRequest): Promise<BaseResponse<
 
 
 
-export async function login(credentials: LoginFormData): Promise<AuthResponse> {
-    const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(credentials)
-    });
-    const data = await response.json();
-    if (data.success && data.data?.token) {
-        console.log("Token recebido no login:", data.data.token.substring(0, 10) + "...");
-        console.log("Comprimento do token:", data.data.token.length);
-        return data;
-    }
+// export async function login(credentials: LoginFormData): Promise<AuthResponse> {
+//     const response = await fetch('/api/login', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json'
+//         },
+//         body: JSON.stringify(credentials)
+//     });
+//     const data = await response.json();
+//     if (data.success && data.data?.token) {
+//         console.log("Token recebido no login:", data.data.token.substring(0, 10) + "...");
+//         console.log("Comprimento do token:", data.data.token.length);
+//         return data;
+//     }
 
-    return { success: false, message: data.message || "Falha no login", data: null, errors: data.errors || null };
+//     return { success: false, message: data.message || "Falha no login", data: null, errors: data.errors || null };
+// }
+
+
+export async function login(credentials: LoginFormData) {
+"use server";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5271';
+    try {
+        
+        const response = await fetch(`${API_BASE_URL}/api/Auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(credentials)
+        })
+
+        return await response.json()
+    } catch (error) {
+        console.error('Erro ao fazer login:', error)
+    }
 }
+
 export function saveAuthToken(token: string, rememberMe: boolean): void {
     if (rememberMe) {
         localStorage.setItem("auth_token", token)

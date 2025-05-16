@@ -1,26 +1,20 @@
-"use client"
+import { getServerSession } from 'next-auth'
+import { nextAuthConfig } from '@/lib/nextAuth'
+import { redirect } from 'next/navigation'
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+export default async function Redirect() {
+    const session = await getServerSession(nextAuthConfig)
 
-export default function DashboardPage() {
-    const router = useRouter()
-
-    useEffect(() => {
-    const userRole = new URLSearchParams(window.location.search).get('role')
-    
-    if (userRole === 'admin') {
-        router.push('/admin/dashboard')
-    } else if (userRole === 'technician') {
-        router.push('technician/dashboard')
-    } else {
-        router.push('user/dashboard')
+    if (!session) {
+        redirect('/')
     }
-}, [router])
-
-return (
-    <div className="flex items-center justify-center min-h-screen">
-    <p className="text-lg">Redirecionando para seu painel...</p>
-    </div>
-)
+    const role = (session?.user as any).defUserTypeId as number;
+    const URLs: { [key: number]: string } = {
+        1: "/t/admin",
+        2: "/t/technician",
+        3: "/t/user",
+    };
+    const redirectUrl = URLs[role] || "/";
+    return redirect(redirectUrl)
 }
+
