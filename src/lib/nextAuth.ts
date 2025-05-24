@@ -1,4 +1,4 @@
-import { login } from "@/services/auth";
+import { login } from "@/actions/authActions";
 import { type AuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials";
 

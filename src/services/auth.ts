@@ -82,22 +82,22 @@ export async function registerUser(data: RegisterRequest): Promise<BaseResponse<
 // }
 
 
-export async function login(credentials: LoginFormData) {
-"use server";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5271';
-    try {
+// export async function login(credentials: LoginFormData) {
+// "use server";
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5271';
+//     try {
         
-        const response = await fetch(`${API_BASE_URL}/api/Auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(credentials)
-        })
+//         const response = await fetch(`${API_BASE_URL}/api/Auth/login`, {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify(credentials)
+//         })
 
-        return await response.json()
-    } catch (error) {
-        console.error('Erro ao fazer login:', error)
-    }
-}
+//         return await response.json()
+//     } catch (error) {
+//         console.error('Erro ao fazer login:', error)
+//     }
+// }
 
 export function saveAuthToken(token: string, rememberMe: boolean): void {
     if (rememberMe) {
