@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import { DashboardShell } from "@/components/dashboard/layout/dashboard-shell"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { fetchTicket } from "@/services/user-dashboard"
+import { fetchTickets } from "@/services/user-dashboard"
 import { Chat } from "@/components/chat"
 import { TicketStatus, TicketPriority, TicketCategory } from "@/types/ticket"
 
@@ -24,7 +24,7 @@ export default function TicketDetailPage() {
         async function load() {
             setLoading(true)
             try {
-                const t = await fetchTicket(ticketId)
+                const t = await fetchTickets(ticketId)
                 setTicket(t)
             } catch (err) {
                 console.error(err)

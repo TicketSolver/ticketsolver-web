@@ -1,55 +1,108 @@
-import { mockTickets, mockStats } from "@/mocks/user-dashboard"
-import { Ticket } from "@/types/ticket"
+import { Ticket, TicketCategory, TicketStatus } from "@/types/ticket";
 
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
-
-async function delay(ms: number) {
-    return new Promise((r) => setTimeout(r, ms))
+export interface Stats {
+  openTickets: number;
+  inProgressTickets: number;
+  resolvedTickets: number;
+  totalTickets: number;
 }
 
-export type Stats = {
-    total: number
-    inProgress: number
-    waiting: number
-    resolved: number
-}
+const MOCK_TICKETS: Ticket[] = [
+  {
+    id: '1',
+    title: 'Problema com impressora',
+    description: 'A impressora não está imprimindo corretamente',
+    status: 0,
+    priority: 1,
+    createdById: 'user1',
+    assignedToId: "user2",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    category: TicketCategory.Hardware,
+    stats: TicketStatus.Open
+  },
+  {
+    id: '2',
+    title: 'Computador lento',
+    description: 'Meu computador está muito lento para iniciar',
+    status: 1,
+    priority: 2,
+    createdById: 'user1',
+    assignedToId: 'tech1',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000).toISOString(),
+    category: TicketCategory.Hardware,
+    stats: TicketStatus.Open
+  }
+];
 
-export async function fetchTickets(): Promise<Ticket[]> {
-    if (USE_MOCK) {
-        await delay(300)
-        return mockTickets
+const MOCK_STATS: Stats = {
+  openTickets: 2,
+  inProgressTickets: 1,
+  resolvedTickets: 3,
+  totalTickets: 6
+};
+
+
+export async function fetchTickets(limit?: number): Promise<Ticket[]> {
+  try {
+    const url = limit ? `/api/tickets?limit=${limit}` : '/api/tickets';
+    console.log(`Buscando tickets de ${url}`);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      console.warn(`Erro ao buscar tickets: ${response.status}. Usando dados simulados.`);
+      return limit ? MOCK_TICKETS.slice(0, limit) : MOCK_TICKETS;
     }
-    const res = await fetch(`/api/tickets?mine=true`)
-    if (!res.ok) {
-        throw new Error("Falha ao buscar tickets")
+    
+    const result = await response.json();
+    console.log("Tickets recebidos:", result.data ? `${result.data.length} tickets` : "nenhum");
+    
+    if (!result.success) {
+      console.warn("API retornou falha para tickets. Usando dados simulados.");
+      return limit ? MOCK_TICKETS.slice(0, limit) : MOCK_TICKETS;
     }
-    return res.json()
+    
+    return result.data || [];
+  } catch (error) {
+    console.error("Erro ao buscar tickets:", error);
+    return limit ? MOCK_TICKETS.slice(0, limit) : MOCK_TICKETS;
+  }
 }
+
 
 export async function fetchStats(): Promise<Stats> {
-    if (USE_MOCK) {
-        await delay(200)
-        return mockStats
+  try {
+    console.log("Buscando estatísticas de tickets");
+    const response = await fetch('/api/tickets/stats', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      console.warn(`Erro ao buscar estatísticas: ${response.status}. Usando dados simulados.`);
+      return MOCK_STATS;
     }
-    const res = await fetch(`/api/tickets/stats?mine=true`)
-    if (!res.ok) {
-        throw new Error("Falha ao buscar estatísticas")
+    
+    const result = await response.json();
+    console.log("Estatísticas recebidas:", result);
+    
+    if (!result.success) {
+      console.warn("API retornou falha para estatísticas. Usando dados simulados.");
+      return MOCK_STATS;
     }
-    return res.json()
-}
-
-export async function fetchTicket(id: number): Promise<Ticket> {
-    if (USE_MOCK) {
-        await delay(200)
-        const t = mockTickets.find((t) => t.id === id)
-        if (!t){
-            throw new Error("Ticket não encontrado")
-        }
-        return t
-    }
-    const res = await fetch(`/api/tickets/${id}`)
-    if (!res.ok){
-        throw new Error("Falha ao buscar ticket")
-    }
-    return res.json()
+    
+    return result.data || MOCK_STATS;
+  } catch (error) {
+    console.error("Erro ao buscar estatísticas:", error);
+    return MOCK_STATS;
+  }
 }

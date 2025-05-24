@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState, useRef } from "react"
@@ -14,7 +13,9 @@ export default function LoginPage() {
   
   useEffect(() => {
     setIsMounted(true)
-    if (toastShownRef.current) return;
+    if(toastShownRef.current){
+      return;
+    } 
     const reset = searchParams?.get("reset")
     const registered = searchParams?.get("registered")
     if (reset === "success") {
