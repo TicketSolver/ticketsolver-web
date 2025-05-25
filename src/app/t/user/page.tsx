@@ -63,7 +63,7 @@ export default function UserDashboard() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <Button asChild>
-          <Link href="/user/tickets/new">
+          <Link href="/t/user/new-ticket/">
             <Plus className="mr-2 h-4 w-4" /> Novo Chamado
           </Link>
         </Button>
@@ -126,7 +126,7 @@ export default function UserDashboard() {
                     {tickets.map((ticket) => (
                       <TableRow key={ticket.id}>
                         <TableCell className="font-medium">
-                          <Link href={`/user/tickets/${ticket.id}`} className="hover:underline">
+                          <Link href={`/t/user/tickets/${ticket.id}`} className="hover:underline">
                             {ticket.title}
                           </Link>
                         </TableCell>
@@ -168,10 +168,10 @@ export default function UserDashboard() {
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button variant="ghost" asChild>
-                <Link href="/user/tickets">Ver todos os chamados</Link>
+                <Link href="/t/user/tickets">Ver todos os chamados</Link>
               </Button>
               <Button asChild>
-                <Link href="/user/tickets/new">
+                <Link href="/t/user/new-ticket/">
                   <Plus className="mr-2 h-4 w-4" /> Novo Chamado
                 </Link>
               </Button>

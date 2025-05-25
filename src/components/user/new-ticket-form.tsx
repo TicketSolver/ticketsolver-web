@@ -61,18 +61,15 @@ export function NewTicketForm() {
             const categoryIndex = TicketCategory[data.category as keyof typeof TicketCategory] as unknown as number
             const priorityIndex = TicketPriority[data.priority as keyof typeof TicketPriority] as unknown as number
 
-            const createdById = 5
-
             await createTicket({
                 title: data.title,
                 description: data.description,
                 category: categoryIndex,
                 priority: priorityIndex,
-                createdById,
             })
 
             toast.success("Chamado criado com sucesso!")
-            router.push("/dashboard/user")
+            router.push("/t/user/")
         } catch (err) {
             console.error(err)
             toast.error("Falha ao criar chamado")

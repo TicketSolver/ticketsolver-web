@@ -4,12 +4,12 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { 
-  LayoutDashboard, 
-  Users, 
-  Ticket, 
-  Settings, 
-  BarChart, 
+import {
+  LayoutDashboard,
+  Users,
+  Ticket,
+  Settings,
+  BarChart,
   Headset,
   Monitor,
   Menu,
@@ -25,7 +25,7 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
   const pathname = usePathname()
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
-  
+
   useEffect(() => {
     setIsMounted(true)
   }, [])
@@ -57,7 +57,7 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
       icon: Settings
     }
   ]
-  
+
   const technicianItems = [
     {
       title: "Dashboard",
@@ -80,31 +80,31 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
       icon: BarChart
     }
   ]
-  
+
   const userItems = [
     {
       title: "Dashboard",
-      href: "/user/dashboard",
+      href: "/t/user/",
       icon: LayoutDashboard
     },
     {
       title: "Novo Chamado",
-      href: "/user/new-ticket",
+      href: "/t/user/new-ticket",
       icon: Headset
     },
     {
       title: "Meus Chamados",
-      href: "/user/tickets",
+      href: "/t/user/tickets",
       icon: Ticket
     },
     {
       title: "Permitir Acesso",
-      href: "/user/dashboard/grant-access",
+      href: "/t/user/grant-access",
       icon: Monitor
-      
+
     }
   ]
-  
+
   let menuItems;
 
   if (userRole === "admin") {
@@ -114,18 +114,18 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
   } else {
     menuItems = userItems;
   }
-  
+
   const toggleMobileSidebar = () => {
     setIsMobileOpen(!isMobileOpen)
   }
-  
+
   if (!isMounted) {
     return null
   }
-  
+
   return (
     <>
-      {}
+      { }
       <Button
         variant="ghost"
         size="icon"
@@ -134,17 +134,17 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
       >
         {isMobileOpen ? <X /> : <Menu />}
       </Button>
-      
-      {}
+
+      { }
       {isMobileOpen && (
-        <button 
+        <button
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={toggleMobileSidebar}
           aria-label="Close mobile sidebar"
         />
       )}
-      
-      {}
+
+      { }
       <div className={cn(
         "fixed h-full w-64 border-r bg-background z-50 transition-transform",
         isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
@@ -152,12 +152,12 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
         <div className="p-4 h-16 flex items-center border-b">
           <h1 className="text-xl font-bold">TicketSolver</h1>
         </div>
-        
+
         <nav className="p-2">
           <ul className="space-y-1">
             {menuItems.map((item) => {
               const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
-              
+
               return (
                 <li key={item.href}>
                   <Link
@@ -165,8 +165,8 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
                     onClick={() => setIsMobileOpen(false)}
                     className={cn(
                       "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
-                      isActive 
-                        ? "bg-primary text-primary-foreground" 
+                      isActive
+                        ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                   >
