@@ -4,11 +4,13 @@ import { redirect } from 'next/navigation'
 
 export default async function Redirect() {
     const session = await getServerSession(nextAuthConfig)
-
+    console.log(session, 'session')
+    
     if (!session) {
         redirect('/')
     }
-    const role = (session?.user as any).defUserTypeId as number;
+
+    const role = (session?.user as any).defUserType as number;
     const URLs: { [key: number]: string } = {
         1: "/t/admin",
         2: "/t/technician",
