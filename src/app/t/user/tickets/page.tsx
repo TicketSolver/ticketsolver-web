@@ -62,7 +62,7 @@ export default function EmployeeTicketsPage() {
                         value={search}
                         onChange={(e) => setSearch(e.currentTarget.value)}
                     />
-                    <Link href="/dashboard/employee/new-ticket">
+                    <Link href="/t/user/new-ticket">
                         <Button>
                             <IconTicket className="mr-2 h-4 w-4" /> Novo Chamado
                         </Button>
@@ -127,7 +127,7 @@ export default function EmployeeTicketsPage() {
                                                 : "—"}
                                         </TableCell>
                                         <TableCell>
-                                            <Link href={`/user/tickets/${t.id}`}>
+                                            <Link href={`/t/user/tickets/${t.id}`}>
                                                 <Button variant="ghost" size="icon">
                                                     <ChevronRight className="h-4 w-4" />
                                                 </Button>
@@ -144,7 +144,6 @@ export default function EmployeeTicketsPage() {
     )
 }
 
-// helpers para status
 function statusText(s: TicketStatus) {
     switch (s) {
         case TicketStatus.Open:

@@ -27,8 +27,7 @@ export const nextAuthConfig: AuthOptions = {
                     token,
                     user
                 } = res.data!;
-                const session = { ...user, token, role: user.role };
-                return session;
+                return { ...user, token, role: user.role };
             },
         })
     ],
@@ -48,6 +47,7 @@ export const nextAuthConfig: AuthOptions = {
         },
         async session({ session, token }) {
             session.user = token.user as any;
+            (session as any).accessToken = token.accessToken;
             return session;
         },
     },

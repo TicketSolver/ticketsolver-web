@@ -25,7 +25,7 @@ interface AuthResponse {
 
 export async function verifyInviteCode(code: string): Promise<BaseResponse<VerifyInviteResponse>> {
     console.log(`Verificando código de convite: ${code}`);
-    const endpoint = "/api/auth/verify";
+    const endpoint = "/api/verify";
 
     try {
         const response = await fetch(endpoint, {
