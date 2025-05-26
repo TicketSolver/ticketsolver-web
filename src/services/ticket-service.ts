@@ -46,3 +46,32 @@ export async function createTicket(input: NewTicketInput): Promise<Ticket> {
     }
     return res.json()
 }
+
+export async function getTechnicianTickets(){
+    if (USE_MOCK) {
+        await delay(500)
+        return mockTickets
+    }
+
+    const res = await fetch(`/api/tickets/tech`)
+    if (!res.ok) {
+        throw new Error("Falha ao obter tickets")
+    }
+    return res.json();
+}
+
+export async function getTechnicianPerformance(){
+    const res = await fetch(`/api/tickets/tech/performance`)
+    if (!res.ok) {
+        throw new Error("Falha ao obter tickets")
+    }
+    return res.json();
+}
+
+export async function getTechnicianCounters(){
+    const res = await fetch(`/api/tickets/tech/counters`)
+    if (!res.ok) {
+        throw new Error("Falha ao obter tickets")
+    }
+    return res.json();
+}

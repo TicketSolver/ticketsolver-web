@@ -143,13 +143,13 @@ export default function UserDashboard() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={
-                            ticket.priority === 0 ? "default" :
-                              ticket.priority === 1 ? "secondary" :
-                                ticket.priority === 2 ? "destructive" : "outline"
+                            ticket.priority === 1 ? "default" :
+                              ticket.priority === 2 ? "secondary" :
+                                ticket.priority === 3 ? "destructive" : "outline"
                           }>
-                            {ticket.priority === 0 ? "Baixa" :
-                              ticket.priority === 1 ? "Média" :
-                                ticket.priority === 2 ? "Alta" : "Desconhecida"}
+                            {ticket.priority === 1 ? "Baixa" :
+                              ticket.priority === 2 ? "Média" :
+                                ticket.priority === 3 ? "Alta" : "Desconhecida"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-muted-foreground">

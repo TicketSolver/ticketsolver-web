@@ -1,21 +1,15 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { 
-  LayoutDashboard, 
-  Users, 
-  Ticket, 
-  Settings, 
-  BarChart, 
-  Headset,
-  Monitor,
   Menu,
   X
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { menuLinks } from "./lib/sidebar"
 
 interface SidebarProps {
   userRole: "admin" | "technician" | "user";
@@ -24,104 +18,23 @@ interface SidebarProps {
 export function Sidebar({ userRole }: Readonly<SidebarProps>) {
   const pathname = usePathname()
   const [isMobileOpen, setIsMobileOpen] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
+  // const [isMounted, setIsMounted] = useState(false)
   
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
+  // useEffect(() => {
+  //   setIsMounted(true)
+  // }, [])
 
-  const adminItems = [
-    {
-      title: "Dashboard",
-      href: "/dashboard/admin",
-      icon: LayoutDashboard
-    },
-    {
-      title: "Usuários",
-      href: "/dashboard/admin/users",
-      icon: Users
-    },
-    {
-      title: "Chamados",
-      href: "/dashboard/admin/tickets",
-      icon: Ticket
-    },
-    {
-      title: "Relatórios",
-      href: "/dashboard/admin/reports",
-      icon: BarChart
-    },
-    {
-      title: "Configurações",
-      href: "/dashboard/admin/settings",
-      icon: Settings
-    }
-  ]
-  
-  const technicianItems = [
-    {
-      title: "Dashboard",
-      href: "/dashboard/technician",
-      icon: LayoutDashboard
-    },
-    {
-      title: "Meus Chamados",
-      href: "/dashboard/technician/tickets",
-      icon: Ticket
-    },
-    // {
-    //   title: "Acesso Remoto",
-    //   href: "/dashboard/technician/remote",
-    //   icon: Monitor
-    // },
-    {
-      title: "Histórico",
-      href: "/dashboard/technician/history",
-      icon: BarChart
-    }
-  ]
-  
-  const userItems = [
-    {
-      title: "Dashboard",
-      href: "/user/dashboard",
-      icon: LayoutDashboard
-    },
-    {
-      title: "Novo Chamado",
-      href: "/user/new-ticket",
-      icon: Headset
-    },
-    {
-      title: "Meus Chamados",
-      href: "/user/tickets",
-      icon: Ticket
-    },
-    {
-      title: "Permitir Acesso",
-      href: "/user/dashboard/grant-access",
-      icon: Monitor
-      
-    }
-  ]
-  
-  let menuItems;
-
-  if (userRole === "admin") {
-    menuItems = adminItems;
-  } else if (userRole === "technician") {
-    menuItems = technicianItems;
-  } else {
-    menuItems = userItems;
-  }
+  const sidebarLinks = useMemo(() => {
+    return menuLinks[userRole] || menuLinks.user;
+  }, [userRole]);
   
   const toggleMobileSidebar = () => {
     setIsMobileOpen(!isMobileOpen)
   }
   
-  if (!isMounted) {
-    return null
-  }
+  // if (!isMounted) {
+  //   return null
+  // }
   
   return (
     <>
@@ -155,8 +68,8 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
         
         <nav className="p-2">
           <ul className="space-y-1">
-            {menuItems.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
+            {sidebarLinks.map((item) => {
+              const isActive = pathname === item.href // || pathname?.startsWith(`${item.href}/`)
               
               return (
                 <li key={item.href}>
