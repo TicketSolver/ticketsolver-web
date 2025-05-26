@@ -9,7 +9,6 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   const session = await getServerSession(nextAuthConfig);
-  console.log("Session:", session);
   
   if (!session) {
     redirect("/");

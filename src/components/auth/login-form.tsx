@@ -15,6 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 const loginSchema = z.object({
   email: z.string().email("Digite um email válido"),
@@ -25,8 +26,10 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export function LoginForm() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { push } = useRouter();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -46,10 +49,14 @@ async function onSubmit(data: LoginFormValues) {
   try {
     const result = await signIn('credentials',
       {
-      redirect: true,
+      redirect: false,
       email: data.email,
       password: data.password
     })
+
+    setTimeout(() => {
+      push('/dashboard')
+    }, 500);
    } catch (error) {
     console.error("Erro ao fazer login:", error)
     toast.error("Erro ao tentar realizar login")
