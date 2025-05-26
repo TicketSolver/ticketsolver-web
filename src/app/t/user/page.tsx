@@ -22,6 +22,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { fetchTickets, fetchStats, type Stats } from "@/services/user-dashboard"
 import type { Ticket } from "@/types/ticket"
 import { useSession } from "next-auth/react"
+import { TicketPriorityBadge } from "@/components/ui/ticket-priority-badge"
+import { TicketStatusBadge } from "@/components/ui/ticket-status-badge"
 
 export default function UserDashboard() {
   const [stats, setStats] = useState<Stats | null>(null)
@@ -59,7 +61,7 @@ export default function UserDashboard() {
 
 
   return (
-    <DashboardShell userRole={user?.role ?? "user"} userName={user?.fullName ?? ""}>
+    <DashboardShell userRole={"user"}>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <Button asChild>
@@ -131,26 +133,10 @@ export default function UserDashboard() {
                           </Link>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={
-                            ticket.status === 0 ? "outline" :
-                              ticket.status === 1 ? "secondary" :
-                                ticket.status === 2 ? "default" : "outline"
-                          }>
-                            {ticket.status === 0 ? "Aberto" :
-                              ticket.status === 1 ? "Em andamento" :
-                                ticket.status === 2 ? "Resolvido" : "Desconhecido"}
-                          </Badge>
+                          <TicketStatusBadge status={ticket.status} />
                         </TableCell>
                         <TableCell>
-                          <Badge variant={
-                            ticket.priority === 0 ? "default" :
-                              ticket.priority === 1 ? "secondary" :
-                                ticket.priority === 2 ? "destructive" : "outline"
-                          }>
-                            {ticket.priority === 0 ? "Baixa" :
-                              ticket.priority === 1 ? "Média" :
-                                ticket.priority === 2 ? "Alta" : "Desconhecida"}
-                          </Badge>
+                          <TicketPriorityBadge priority={ticket.priority} />
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {new Date(ticket.createdAt).toLocaleDateString('pt-BR')}

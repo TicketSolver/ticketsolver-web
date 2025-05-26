@@ -19,16 +19,16 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useSession } from "next-auth/react"
 
 interface HeaderProps {
   readonly userRole: "admin" | "technician" | "user";
-  readonly userName: string;
 }
 
-export function Header({ userRole, userName }: HeaderProps) {
+export function Header({ userRole }: HeaderProps) {
+  const { data: session } = useSession();
   const router = useRouter()
   const [notifications] = useState(3)
   
@@ -36,6 +36,7 @@ export function Header({ userRole, userName }: HeaderProps) {
     router.push("/auth/login")
   }
   
+  const userName = (session?.user as any)?.name || '';
   const initials = userName
     .split(" ")
     .map(n => n[0])
@@ -49,7 +50,7 @@ export function Header({ userRole, userName }: HeaderProps) {
       </div>
       
       <div className="flex items-center gap-2">
-        <div className="relative">
+        {/* <div className="relative">
           <Button variant="ghost" size="icon" className="rounded-full">
             <Bell className="h-5 w-5" />
             {notifications > 0 && (
@@ -58,7 +59,7 @@ export function Header({ userRole, userName }: HeaderProps) {
               </span>
             )}
           </Button>
-        </div>
+        </div> */}
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

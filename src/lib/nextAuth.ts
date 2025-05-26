@@ -12,7 +12,7 @@ export const nextAuthConfig: AuthOptions = {
                 email: { label: "Usuário", type: "text", placeholder: "jsmith" },
                 password: { label: "Senha", type: "password" },
             },
-            async authorize(credentials, req) {
+            async authorize(credentials) {
                 if (!credentials || !credentials.email || !credentials.password) return null;
                 console.log("Tentando fazer login com:", credentials.email);
                 const res = await login(
@@ -27,17 +27,13 @@ export const nextAuthConfig: AuthOptions = {
                     token,
                     user
                 } = res.data!;
-                return { ...user, token, role: user.role };
+                const session = { ...user, token, role: user.role };
+                return session as any;
             },
         })
     ],
 
     callbacks: {
-
-        async redirect({ url, baseUrl }) {
-
-            return "/dashboard";
-        },
         async jwt({ token, user }) {
             if (user) {
                 token.accessToken = (user as any).token;
