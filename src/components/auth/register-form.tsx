@@ -77,6 +77,7 @@ async function onSubmitCode(data: InviteCodeFormValues) {
   setIsLoading(true);
 
   try {
+    console.log("Verificando código de convite:", data.inviteCode);
     const result = await verifyInviteCode(data.inviteCode);
     if (!result) {
       toast.error("Resposta inválida do servidor");

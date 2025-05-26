@@ -34,3 +34,9 @@ export enum TicketStatus {
     Closed,
     Reopened
 }
+export interface TicketRequest {
+    title: string
+    description?: string
+    category: number
+    priority: number
+}

@@ -38,7 +38,7 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
   
   return (
     <>
-      {}
+      { }
       <Button
         variant="ghost"
         size="icon"
@@ -47,17 +47,17 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
       >
         {isMobileOpen ? <X /> : <Menu />}
       </Button>
-      
-      {}
+
+      { }
       {isMobileOpen && (
-        <button 
+        <button
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={toggleMobileSidebar}
           aria-label="Close mobile sidebar"
         />
       )}
-      
-      {}
+
+      { }
       <div className={cn(
         "fixed h-full w-64 border-r bg-background z-50 transition-transform",
         isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
@@ -65,7 +65,7 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
         <div className="p-4 h-16 flex items-center border-b">
           <h1 className="text-xl font-bold">TicketSolver</h1>
         </div>
-        
+
         <nav className="p-2">
           <ul className="space-y-1">
             {sidebarLinks.map((item) => {
@@ -78,8 +78,8 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
                     onClick={() => setIsMobileOpen(false)}
                     className={cn(
                       "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
-                      isActive 
-                        ? "bg-primary text-primary-foreground" 
+                      isActive
+                        ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                   >

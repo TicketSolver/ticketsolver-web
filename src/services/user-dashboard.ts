@@ -1,3 +1,4 @@
+
 import { Ticket, TicketCategory, TicketStatus } from "@/types/ticket";
 
 export interface Stats {
@@ -46,29 +47,29 @@ const MOCK_STATS: Stats = {
 
 export async function fetchTickets(limit?: number): Promise<Ticket[]> {
   try {
-    const url = limit ? `/api/tickets?limit=${limit}` : '/api/tickets';
+    const url = limit ? `/api/user/tickets?limit=${limit}` : '/api/user/tickets';
     console.log(`Buscando tickets de ${url}`);
-    
+        
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
       }
     });
-    
+        
     if (!response.ok) {
       console.warn(`Erro ao buscar tickets: ${response.status}. Usando dados simulados.`);
       return limit ? MOCK_TICKETS.slice(0, limit) : MOCK_TICKETS;
     }
-    
+        
     const result = await response.json();
     console.log("Tickets recebidos:", result.data ? `${result.data.length} tickets` : "nenhum");
-    
+        
     if (!result.success) {
       console.warn("API retornou falha para tickets. Usando dados simulados.");
       return limit ? MOCK_TICKETS.slice(0, limit) : MOCK_TICKETS;
     }
-    
+        
     return result.data || [];
   } catch (error) {
     console.error("Erro ao buscar tickets:", error);
@@ -76,6 +77,36 @@ export async function fetchTickets(limit?: number): Promise<Ticket[]> {
   }
 }
 
+export async function fetchTicketById(ticketId: number): Promise<Ticket | null> {
+  try {
+    console.log(`Buscando ticket específico: ${ticketId}`);
+        
+    const response = await fetch(`/api/user/tickets/${ticketId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+        
+    if (!response.ok) {
+      console.warn(`Erro ao buscar ticket ${ticketId}: ${response.status}`);
+      return MOCK_TICKETS.find(t => t.id === ticketId.toString()) || null;
+    }
+        
+    const result = await response.json();
+    console.log(`Ticket ${ticketId} recebido:`, result.success ? "Sucesso" : "Falha");
+        
+    if (!result.success) {
+      console.warn(`API retornou falha para ticket ${ticketId}`);
+      return MOCK_TICKETS.find(t => t.id === ticketId.toString()) || null;
+    }
+        
+    return result.data;
+  } catch (error) {
+    console.error(`Erro ao buscar ticket ${ticketId}:`, error);
+    return MOCK_TICKETS.find(t => t.id === ticketId.toString()) || null;
+  }
+}
 
 export async function fetchStats(): Promise<Stats> {
   try {
@@ -86,20 +117,20 @@ export async function fetchStats(): Promise<Stats> {
         'Content-Type': 'application/json'
       }
     });
-    
+        
     if (!response.ok) {
       console.warn(`Erro ao buscar estatísticas: ${response.status}. Usando dados simulados.`);
       return MOCK_STATS;
     }
-    
+        
     const result = await response.json();
     console.log("Estatísticas recebidas:", result);
-    
+        
     if (!result.success) {
       console.warn("API retornou falha para estatísticas. Usando dados simulados.");
       return MOCK_STATS;
     }
-    
+        
     return result.data || MOCK_STATS;
   } catch (error) {
     console.error("Erro ao buscar estatísticas:", error);

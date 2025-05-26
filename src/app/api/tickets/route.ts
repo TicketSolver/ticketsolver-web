@@ -1,91 +1,128 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { parseJwt } from "@/utils/jwt";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://seu-backend-api.com';
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from "next-auth";
+import { nextAuthConfig } from "@/lib/nextAuth";
+
+const backendUrl = process.env.BACKEND_URL || 'http://localhost:5271'
 
 export async function GET(request: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
+        const session = await getServerSession(nextAuthConfig);
         
-        if (!token) {
-            console.log("Token não encontrado na requisição de tickets");
+        if (!session) {
             return NextResponse.json(
-                { success: false, message: 'Não autorizado' },
+                { error: 'Sessão não encontrada' },
                 { status: 401 }
-            );
-        }
-        const decoded = parseJwt(token);
-        if (!decoded) {
-            console.error("Falha ao decodificar token nos tickets");
-            return NextResponse.json(
-                { success: false, message: 'Token inválido' },
-                { status: 401 }
-            );
-        }
-        
-        const userId = decoded?.nameid || decoded?.sub;
-        console.log("ID do usuário obtido do token:", userId);
-        
-        if (!userId) {
-            return NextResponse.json(
-                { success: false, message: 'ID do usuário não encontrado no token' },
-                { status: 400 }
-            );
+            )
         }
 
-        const { searchParams } = new URL(request.url);
-        const limit = searchParams.get('limit');
-        let url = `${API_BASE_URL}/api/Tickets/user/${userId}`;
-        if (limit) {
-            url += `?limit=${limit}`;
+        const accessToken = (session as any).accessToken;
+        if (!accessToken) {
+            return NextResponse.json(
+                { error: 'Token de acesso não encontrado' },
+                { status: 401 }
+            )
         }
-        
-        console.log("Chamando API externa para tickets:", url);
 
-        const response = await fetch(url, {
+        console.log('Buscando tickets do usuário...')
+        const response = await fetch(`${backendUrl}/api/Tickets/user`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${accessToken}`,
             },
-            next: { revalidate: 60 }
-        });
+        })
+
+        console.log('Response status:', response.status)
 
         if (!response.ok) {
-            console.error(`API retornou status ${response.status} para tickets`);
-            const errorText = await response.text();
+            const errorData = await response.text()
+            console.error('Erro do backend:', errorData)
+
+            return NextResponse.json(
+                { error: 'Falha ao buscar tickets do servidor' },
+                { status: response.status }
+            )
+        }
+
+        const data = await response.json()
+        console.log('Tickets recebidos do backend:', data?.length || 0)
+        return NextResponse.json({
+            success: true,
+            data: data
+        })
+
+    } catch (error) {
+        console.error('Erro na API route:', error)
+        return NextResponse.json(
+            { error: 'Erro interno do servidor' },
+            { status: 500 }
+        )
+    }
+    
+}
+export async function POST(request: NextRequest) {
+    try {
+        const session = await getServerSession(nextAuthConfig);
+        
+        if (!session) {
+            return NextResponse.json(
+                { error: 'Sessão não encontrada' },
+                { status: 401 }
+            )
+        }
+
+        const accessToken = (session as any).accessToken;
+        if (!accessToken) {
+            return NextResponse.json(
+                { error: 'Token de acesso não encontrado' },
+                { status: 401 }
+            )
+        }
+
+        const body = await request.json()
+        console.log('Criando novo ticket:', body)
+        const response = await fetch(`${backendUrl}/api/Tickets`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify(body)
+        })
+
+        console.log('Response status:', response.status)
+
+        if (!response.ok) {
+            const errorData = await response.text()
+            console.error('Erro do backend:', errorData)
+
             try {
-                const errorData = JSON.parse(errorText);
-                return NextResponse.json(errorData, { status: response.status });
+                const errorJson = JSON.parse(errorData)
+                return NextResponse.json(
+                    { error: errorJson.message || 'Falha ao criar ticket' },
+                    { status: response.status }
+                )
             } catch {
                 return NextResponse.json(
-                    {
-                        success: false,
-                        message: `Erro ao obter tickets: ${response.statusText || `Código ${response.status}`}`,
-                        details: errorText.substring(0, 200)
-                    },
+                    { error: 'Falha ao criar ticket no servidor' },
                     { status: response.status }
-                );
+                )
             }
         }
 
-        const data = await response.json();
-        console.log("Dados de tickets recebidos da API:", data ? `${data.length || 0} tickets` : "nenhum");
-        
+        const data = await response.json()
+        console.log('Ticket criado:', data)
+
         return NextResponse.json({
             success: true,
-            data: data || []
-        });
+            data: data
+        })
+
     } catch (error) {
-        console.error("Erro ao processar requisição de tickets:", error);
+        console.error('Erro na API route POST:', error)
         return NextResponse.json(
-            {
-                success: false, 
-                message: "Erro ao processar requisição de tickets",
-                error: (error instanceof Error) ? error.message : String(error)
-            },
+            { error: 'Erro interno do servidor' },
             { status: 500 }
-        );
+        )
     }
 }
