@@ -48,7 +48,7 @@ export default function EmployeeTicketsPage() {
     )
 
     return (
-        <DashboardShell userRole="user" userName="Maria Souza">
+        <DashboardShell userRole="user" >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
                 <div>
                     <h1 className="text-2xl font-bold">Meus Chamados</h1>
@@ -147,10 +147,12 @@ export default function EmployeeTicketsPage() {
 // helpers para status
 function statusText(s: TicketStatus) {
     switch (s) {
-        case TicketStatus.Open:
-            return "Aberto"
+        case TicketStatus.New:
+            return "Novo"
         case TicketStatus.InProgress:
             return "Em andamento"
+        case TicketStatus.Reopened:
+            return "Reaberto"
         case TicketStatus.Resolved:
             return "Resolvido"
         case TicketStatus.Closed:
@@ -162,7 +164,7 @@ function statusText(s: TicketStatus) {
 
 function statusClass(s: TicketStatus) {
     switch (s) {
-        case TicketStatus.Open:
+        case TicketStatus.New:
             return "bg-blue-100 text-blue-800 border-blue-200"
         case TicketStatus.InProgress:
             return "bg-yellow-100 text-yellow-800 border-yellow-200"

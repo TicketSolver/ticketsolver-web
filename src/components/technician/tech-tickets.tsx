@@ -8,6 +8,7 @@ import { Badge } from "../ui/badge";
 import { useTechTickets } from "./hooks/use-tech-tickets";
 import { Ticket } from "@/types/ticket";
 import { TicketPriorityBadge } from "../ui/ticket-priority-badge";
+import Link from "next/link";
 
 export function TechTickets() {
   const { tickets } = useTechTickets();
@@ -45,7 +46,9 @@ export function TechTickets() {
           </TableBody>
         </Table>
         <div className="mt-4 flex justify-end">
-          <Button variant="outline" size="sm">Ver todos os chamados</Button>
+          <Link href={`/t/technician/tickets`}>
+            <Button variant="outline" size="sm">Ver todos os chamados</Button>
+          </Link>
         </div>
       </CardContent>
     </Card>
@@ -61,9 +64,11 @@ function TechTicketTableItem({ ticket }: { ticket: Ticket }) {
         <TicketPriorityBadge priority={ticket.priority} />
       </TableCell>
       <TableCell>
-        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+        <Link href={`/t/technician/tickets/${ticket.id}`}>
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </Link>
       </TableCell>
     </TableRow>
   )

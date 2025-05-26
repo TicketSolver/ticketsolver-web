@@ -5,7 +5,7 @@ import { TechPerformance } from "@/components/technician/tech-performance"
 
 export default function TechnicianDashboard() {
   return (
-    <DashboardShell userRole="technician" userName="João Silva">
+    <DashboardShell userRole="technician">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Painel do Técnico</h1>
         <p className="text-sm text-muted-foreground">

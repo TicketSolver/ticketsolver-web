@@ -53,22 +53,22 @@ export const menuLinks = {
   user: [
     {
       title: "Dashboard",
-      href: "/user/dashboard",
+      href: "/t/user",
       icon: LayoutDashboard
     },
     {
       title: "Novo Chamado",
-      href: "/user/new-ticket",
+      href: "/t/user/new-ticket",
       icon: Headset
     },
     {
       title: "Meus Chamados",
-      href: "/user/tickets",
+      href: "/t/user/tickets",
       icon: Ticket
     },
     {
       title: "Permitir Acesso",
-      href: "/user/dashboard/grant-access",
+      href: "/t/user/dashboard/grant-access",
       icon: Monitor
     }
   ]

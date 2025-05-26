@@ -8,7 +8,7 @@ export const techTicketsQueryKey = ['tech', 'tickets'] as const;
 export function useTechTickets() {
   const { data: tickets, isLoading, isRefetching, isError, error } = useQuery({
     queryKey: techTicketsQueryKey,
-    queryFn: getTechnicianTickets
+    queryFn: () => getTechnicianTickets({page: 1, pageSize: 5})
   });
   
   return {
