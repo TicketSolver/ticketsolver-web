@@ -33,27 +33,27 @@ export function Sidebar({ userRole }: Readonly<SidebarProps>) {
   const adminItems = [
     {
       title: "Dashboard",
-      href: "/dashboard/admin",
+      href: "/t/admin",
       icon: LayoutDashboard
     },
     {
       title: "Usuários",
-      href: "/dashboard/admin/users",
+      href: "/t/admin/users",
       icon: Users
     },
     {
       title: "Chamados",
-      href: "/dashboard/admin/tickets",
+      href: "/t/admin/tickets",
       icon: Ticket
     },
     {
       title: "Relatórios",
-      href: "/dashboard/admin/reports",
+      href: "/t/admin/reports",
       icon: BarChart
     },
     {
       title: "Configurações",
-      href: "/dashboard/admin/settings",
+      href: "/t/admin/settings",
       icon: Settings
     }
   ]
