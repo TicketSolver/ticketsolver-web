@@ -25,9 +25,9 @@ export const nextAuthConfig: AuthOptions = {
                 }
                 const {
                     token,
-                    user
+                    user,
                 } = res.data!;
-                const session = { ...user, token, role: user.role };
+                const session = { ...user, token, role: user.role, tenantId: user.tenantId };
                 return session as any;
             },
         })

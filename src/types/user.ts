@@ -5,3 +5,12 @@ export interface User {
     role: 'admin' | 'technician' | 'user';
     roleId: string;
 }
+
+
+export interface UserProfile {
+    id: string;
+    fullName: string;
+    email: string;
+    defUserTypeId: number;
+    tenantId:number;
+}

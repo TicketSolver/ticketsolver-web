@@ -12,7 +12,9 @@ interface AuthResponse {
             email: string;
             name: string;
             role?: string;
-        };
+            tenantId: string;
+        },
+        
     } | null;
     errors: any;
 }

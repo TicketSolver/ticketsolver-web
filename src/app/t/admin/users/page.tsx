@@ -13,7 +13,7 @@ import {
   ShieldCheck,
   X
 } from "lucide-react"
-
+import { usePagination } from "@/hooks/usePagination"
 import { DashboardShell } from "@/components/dashboard/layout/dashboard-shell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -41,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import TablePagination from "@/components/ui/table-pagination"
 import {
   Dialog,
   DialogContent,
@@ -52,7 +53,7 @@ import {
 } from "@/components/ui/dialog"
 
 import { Toaster, toast } from "sonner"
-
+import { useAdminRecentTickets } from "@/hooks/useAdminRecentTickets"
 interface User {
   id: number
   name: string
@@ -69,7 +70,7 @@ interface NewUserData {
   password: string
   defUserTypeId: number
   tenantId: number
-  key: string // Campo para a chave (Admin ou Public)
+  key: string
 }
 
 export default function UsersPage() {
@@ -78,6 +79,18 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState("all")
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const {
+    page, perPage, total,
+    actions: {
+      setPage,
+      setPerPage,
+      updateTotal,
+    }
+  } = usePagination({
+    initialPage: 1,
+    initialPerPage: 10,
+  });
+  const { data: recent, isLoading: ticketsLoading } = useAdminRecentTickets(page, perPage);
 
   // Formulário de novo usuário
   const [newUser, setNewUser] = useState<NewUserData>({
@@ -97,58 +110,9 @@ export default function UsersPage() {
     return null
   }
 
-  const users: User[] = [
-    {
-      id: 1,
-      name: "João Silva",
-      email: "joao.silva@empresa.com",
-      role: "technician",
-      department: "TI",
-      status: "active",
-      lastAccess: "2025-01-20 14:30"
-    },
-    {
-      id: 2,
-      name: "Maria Santos",
-      email: "maria.santos@empresa.com",
-      role: "user",
-      department: "Financeiro",
-      status: "active",
-      lastAccess: "2025-01-20 10:15"
-    },
-    {
-      id: 3,
-      name: "Carlos Pereira",
-      email: "carlos.pereira@empresa.com",
-      role: "technician",
-      department: "TI",
-      status: "active",
-      lastAccess: "2025-01-20 16:45"
-    },
-    {
-      id: 4,
-      name: "Ana Oliveira",
-      email: "ana.oliveira@empresa.com",
-      role: "admin",
-      department: "TI",
-      status: "active",
-      lastAccess: "2025-01-20 09:20"
-    },
-    {
-      id: 5,
-      name: "Pedro Costa",
-      email: "pedro.costa@empresa.com",
-      role: "user",
-      department: "Vendas",
-      status: "inactive",
-      lastAccess: "2025-01-15 11:30"
-    }
-  ]
-
-  // Função de filtro
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = recent?.items?.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesRole = roleFilter === "all" || user.role === roleFilter
     return matchesSearch && matchesRole
   })
@@ -188,7 +152,7 @@ export default function UsersPage() {
 
     // Validação da chave condicionalmente
     if ((newUser.defUserTypeId === 1 || newUser.defUserTypeId === 2 || newUser.defUserTypeId === 3) && !newUser.key) {
-       toast.error("Preencha o campo de chave", {
+      toast.error("Preencha o campo de chave", {
         description: newUser.defUserTypeId === 1 ? "A Admin Key é obrigatória." : "A Public Key é obrigatória.",
       })
       return
@@ -246,7 +210,7 @@ export default function UsersPage() {
   }
 
   return (
-    <DashboardShell userRole="admin" userName="Administrador">
+    <DashboardShell userRole="admin">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Gerenciar Usuários</h1>
@@ -276,7 +240,7 @@ export default function UsersPage() {
                 <Input
                   id="fullName"
                   value={newUser.fullName}
-                  onChange={(e) => setNewUser({...newUser, fullName: e.target.value})}
+                  onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
                   placeholder="Digite o nome completo"
                 />
               </div>
@@ -287,7 +251,7 @@ export default function UsersPage() {
                   id="email"
                   type="email"
                   value={newUser.email}
-                  onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                   placeholder="usuario@empresa.com"
                 />
               </div>
@@ -298,7 +262,7 @@ export default function UsersPage() {
                   id="password"
                   type="password"
                   value={newUser.password}
-                  onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                   placeholder="Digite uma senha temporária"
                 />
                 <p className="text-xs text-muted-foreground">
@@ -311,7 +275,7 @@ export default function UsersPage() {
                 <Select
                   value={newUser.defUserTypeId.toString()}
                   onValueChange={(value) => {
-                    setNewUser({...newUser, defUserTypeId: parseInt(value), key: ""}) // Limpa a chave ao mudar o tipo
+                    setNewUser({ ...newUser, defUserTypeId: parseInt(value), key: "" }) // Limpa a chave ao mudar o tipo
                   }}
                 >
                   <SelectTrigger>
@@ -327,17 +291,17 @@ export default function UsersPage() {
 
               {/* Campo de Chave Condicional */}
               {(newUser.defUserTypeId === 1 || newUser.defUserTypeId === 2 || newUser.defUserTypeId === 3) && (
-                 <div className="space-y-2">
-                   <Label htmlFor="key">
-                     {newUser.defUserTypeId === 1 ? "Admin Key *" : "Public Key *"}
-                   </Label>
-                   <Input
-                     id="key"
-                     value={newUser.key}
-                     onChange={(e) => setNewUser({...newUser, key: e.target.value})}
-                     placeholder={newUser.defUserTypeId === 1 ? "Digite a Admin Key" : "Digite a Public Key"}
-                   />
-                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="key">
+                    {newUser.defUserTypeId === 1 ? "Admin Key *" : "Public Key *"}
+                  </Label>
+                  <Input
+                    id="key"
+                    value={newUser.key}
+                    onChange={(e) => setNewUser({ ...newUser, key: e.target.value })}
+                    placeholder={newUser.defUserTypeId === 1 ? "Digite a Admin Key" : "Digite a Public Key"}
+                  />
+                </div>
               )}
 
             </div>
@@ -396,9 +360,6 @@ export default function UsersPage() {
       <Card>
         <CardHeader>
           <CardTitle>Lista de Usuários</CardTitle>
-          <CardDescription>
-            {filteredUsers.length} usuários encontrados de {users.length} total
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -459,6 +420,13 @@ export default function UsersPage() {
               )}
             </TableBody>
           </Table>
+          <TablePagination
+            count={recent?.count || 0}
+            page={page}
+            perPage={perPage}
+            onPageChange={setPage}
+            onPerPageChange={setPerPage}
+          />
         </CardContent>
       </Card>
       <Toaster position="bottom-right" />
