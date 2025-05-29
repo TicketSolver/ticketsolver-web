@@ -4,29 +4,32 @@ import { nextAuthConfig } from "@/lib/nextAuth";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { ticketId: string } }
+  context: { params: { ticketId: string } }
 ) {
+
   const session = await getServerSession(nextAuthConfig);
   if (!session) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
   const token = (session as any).accessToken;
 
-    let ticketId = 6;
+  const { ticketId } = await context.params
 
-  let content: string;
+  let payload: any;
   try {
-    const body = await req.json();
-    content = body.content;
+    payload = await req.json();
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
-  if (typeof content !== "string" || content.trim().length === 0) {
+  const { content } = payload;
+  if (typeof content !== "string" || content.trim() === "") {
     return NextResponse.json(
       { error: "O campo 'content' não pode ser vazio" },
       { status: 400 }
     );
   }
+
+  // 2) Envia o JSON correto para a API externa
   const apiRes = await fetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/chat/tickets/${ticketId}/start`,
     {
@@ -35,9 +38,15 @@ export async function POST(
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify(content),
     }
   );
+
+  // 3) Leia o corpo apenas uma vez
   const data = await apiRes.json();
+  if (!apiRes.ok) {
+    console.log("Erro da API:", data);
+  }
+
   return NextResponse.json(data, { status: apiRes.status });
 }
