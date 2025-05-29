@@ -1,4 +1,5 @@
 "use client"
+
 import { usePreregisterUser } from '@/hooks/usePreregisterUser'
 import { UserProfile } from '@/types/user'
 import { useEffect, useState } from "react"
@@ -14,6 +15,7 @@ import {
   ShieldCheck,
   X
 } from "lucide-react"
+import { useSession } from "next-auth/react"; // Import useSession
 import { usePagination } from "@/hooks/usePagination"
 import { DashboardShell } from "@/components/dashboard/layout/dashboard-shell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -59,19 +61,22 @@ import { useAdminUsers } from "@/hooks/useAdminUser"
 interface NewUserData {
   email: string
   fullName: string
-  password: string
+  password?: string
   defUserTypeId: number
   tenantId: number
   key: string
 }
 
 export default function UsersPage() {
+  const { data: session } = useSession();
+  const loggedInUserTenantId = (session?.user as any)?.tenantId || 1;
+
   const [isMounted, setIsMounted] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  
+
   const {
     page, perPage, total,
     actions: {
@@ -89,32 +94,38 @@ export default function UsersPage() {
     fullName: "",
     password: "",
     defUserTypeId: 3,
-    tenantId: 1, // Ajuste se o tenantId for dinâmico
+    tenantId: loggedInUserTenantId,
     key: ""
   })
 
-  // 'recent' agora é PaginatedResponse<UserProfile> graças ao 'select' no hook
   const { data: recent, isFetching } = useAdminUsers(page, perPage);
   const [editUser, setEditUser] = useState<UserProfile | null>(null);
 
-  // Acessando items e count diretamente de 'recent'
   const items = recent?.items ?? []
 
   const handleEditUser = (user: UserProfile) => {
     setEditUser(user);
-    // Pode ser necessário popular o formulário de edição com os dados do 'editUser' aqui
-    // setNewUser({ ...newUser, ...user }); // Exemplo, ajuste conforme seu formulário de edição
-    setIsCreateUserOpen(true); // Reutilizando o modal de criação para edição? Considere um modal separado ou lógica condicional.
+    setNewUser({
+      email: user.email,
+      fullName: user.fullName,
+      defUserTypeId: user.defUserTypeId,
+      tenantId: user.tenantId,
+      key: "", 
+    });
+    setIsCreateUserOpen(true);
   };
-
-  // Assumindo que usePreregisterUser é para criar, não editar
   const { createUser, isLoading: isCreating, error: createError } = usePreregisterUser()
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
+  useEffect(() => {
+    if (session?.user && !editUser) {
+      setNewUser(prev => ({ ...prev, tenantId: (session.user as any).tenantId || 1 }));
+    }
+  }, [session, editUser]);
 
-  // Atualiza o total de itens quando os dados são carregados
+
   useEffect(() => {
     if (recent?.count != null) {
       updateTotal(recent?.count);
@@ -130,36 +141,33 @@ export default function UsersPage() {
     }
   }
 
-  // Lógica para atualizar usuário (se você tiver um formulário de edição)
   const handleUpdateUser = async () => {
     if (!editUser) return;
+    setIsLoading(true);
 
     try {
-      // Ajuste o payload conforme necessário para a sua API de PUT
       const res = await fetch(`/api/admin/users/${editUser.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        // Use os dados do estado 'newUser' ou um estado separado para edição
         body: JSON.stringify({
-          fullName: newUser.fullName, // Exemplo: use os campos do estado newUser
+          fullName: newUser.fullName,
           email: newUser.email,
           defUserTypeId: newUser.defUserTypeId,
-          // Inclua outros campos que podem ser editados
         })
       });
       if (!res.ok) {
-         const errorBody = await res.json().catch(() => ({ message: 'Falha desconhecida' }));
-         throw new Error(`Falha na atualização: ${errorBody.message}`);
+        const errorBody = await res.json().catch(() => ({ message: 'Falha desconhecida' }));
+        throw new Error(`Falha na atualização: ${errorBody.message}`);
       }
       toast.success("Usuário atualizado");
-      setIsCreateUserOpen(false); // Fecha o modal
-      setEditUser(null); // Limpa o usuário em edição
-      // Opcional: Refetch a lista de usuários para ver a alteração
-      // queryClient.invalidateQueries(["admin", "users"]); // Se estiver usando useQueryClient
+      setIsCreateUserOpen(false);
+      setEditUser(null);
     } catch (error: any) {
       toast.error("Erro ao atualizar usuário", {
-         description: error.message || "Tente novamente.",
+        description: error.message || "Tente novamente.",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -171,7 +179,7 @@ export default function UsersPage() {
     return matchesSearch && matchesRole
   })
 
-  if (!isMounted) return null // Renderiza apenas no cliente
+  if (!isMounted) return null
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -186,29 +194,20 @@ export default function UsersPage() {
     }
   }
 
-  const getStatusBadge = (statusId: number) => {
-    // Assumindo que defUserStatusId 1 = Ativo, 2 = Inativo, etc.
-    switch (statusId) {
-      case 1:
-        return <Badge className="bg-green-100 text-green-800 border-green-200">Ativo</Badge>
-      case 2:
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Inativo</Badge>
-      default:
-        return <Badge variant="outline">Status ID: {statusId}</Badge>
-    }
-  }
-
-
   const handleCreateUser = async () => {
-    // validações
     if (!newUser.email || !newUser.fullName || !newUser.password) {
       toast.error("Preencha os campos obrigatórios", {
         description: "Nome, Email e Senha Temporária são obrigatórios.",
       })
       return
     }
+    if (!newUser.tenantId) {
+        toast.error("ID do Tenant não encontrado.", {
+            description: "Não foi possível determinar o tenantId para este usuário.",
+        });
+        return;
+    }
 
-    // A validação da chave parece estar correta
     if (([1, 2, 3].includes(newUser.defUserTypeId)) && !newUser.key) {
       toast.error("Preencha o campo de chave", {
         description:
@@ -218,27 +217,28 @@ export default function UsersPage() {
       })
       return
     }
-
-    const payload = { ...newUser }
-    const result = await createUser(payload) // Assumindo que createUser retorna ApiResponse<any> ou similar
-    if (result?.success && result.data?.result?.succeeded) { // Ajuste o acesso a 'succeeded' conforme a estrutura de retorno de createUser
+    const payload = { 
+      ...newUser,
+      password: newUser.password || ""
+    }
+    const result = await createUser(payload)
+    if (result?.success && result.data?.result?.succeeded) {
       toast.success("Usuário criado com sucesso!", {
         description: `Usuário "${newUser.fullName}" foi adicionado.`,
       })
-      // Limpa o formulário após sucesso
       setNewUser({
         email: "",
         fullName: "",
         password: "",
         defUserTypeId: 3,
-        tenantId: 1, // Ajuste se necessário
+        tenantId: loggedInUserTenantId,
         key: "",
       })
       setIsCreateUserOpen(false)
     } else {
       const errorMessage = createError != null
-        ? (typeof createError === "object" && (createError as any) instanceof Error ? (createError as Error).message : createError)
-        : (result?.message || "Falha ao criar usuário"); 
+        ? (typeof createError === "object" && (createError as any) instanceof Error ? (createError as Error).message : String(createError))
+        : (result?.message || "Falha ao criar usuário");
 
       toast.error(errorMessage, {
         description: "Tente novamente.",
@@ -247,7 +247,7 @@ export default function UsersPage() {
   }
 
   return (
-    <DashboardShell userRole="admin"> {/* Ajuste userRole conforme necessário */}
+    <DashboardShell userRole="admin"> 
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Gerenciar Usuários</h1>
@@ -256,20 +256,24 @@ export default function UsersPage() {
           </p>
         </div>
 
-        {/* Modal de Criação/Edição */}
-        <Dialog open={isCreateUserOpen} onOpenChange={setIsCreateUserOpen}>
+        <Dialog open={isCreateUserOpen} onOpenChange={(isOpen) => {
+          setIsCreateUserOpen(isOpen);
+          if (!isOpen) {
+            setEditUser(null);
+          }
+        }}>
           <DialogTrigger asChild>
             <Button onClick={() => {
-                setEditUser(null); // Limpa o usuário em edição ao abrir para criar
-                setNewUser({ // Limpa o formulário
-                    email: "",
-                    fullName: "",
-                    password: "",
-                    defUserTypeId: 3,
-                    tenantId: 1,
-                    key: ""
-                });
-                setIsCreateUserOpen(true);
+              setEditUser(null);
+              setNewUser({
+                email: "",
+                fullName: "",
+                password: "",
+                defUserTypeId: 3,
+                tenantId: loggedInUserTenantId,
+                key: ""
+              });
+              setIsCreateUserOpen(true);
             }}>
               <UserPlus className="h-4 w-4 mr-2" />
               Novo Usuário
@@ -279,7 +283,7 @@ export default function UsersPage() {
             <DialogHeader>
               <DialogTitle>{editUser ? "Editar Usuário" : "Criar Novo Usuário"}</DialogTitle>
               <DialogDescription>
-                 {editUser ? "Edite os dados do usuário" : "Preencha os dados para criar um novo usuário no sistema"}
+                {editUser ? "Edite os dados do usuário" : "Preencha os dados para criar um novo usuário no sistema"}
               </DialogDescription>
             </DialogHeader>
 
@@ -288,7 +292,7 @@ export default function UsersPage() {
                 <Label htmlFor="fullName">Nome Completo *</Label>
                 <Input
                   id="fullName"
-                  value={newUser.fullName} // Usando newUser state para o formulário
+                  value={newUser.fullName}
                   onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
                   placeholder="Digite o nome completo"
                 />
@@ -299,20 +303,20 @@ export default function UsersPage() {
                 <Input
                   id="email"
                   type="email"
-                  value={newUser.email} // Usando newUser state
+                  value={newUser.email}
                   onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                   placeholder="usuario@empresa.com"
+                  disabled={!!editUser}
                 />
               </div>
 
-              {/* Campo de Senha apenas para criação */}
               {!editUser && (
                 <div className="space-y-2">
                   <Label htmlFor="password">Senha Temporária *</Label>
                   <Input
                     id="password"
                     type="password"
-                    value={newUser.password} // Usando newUser state
+                    value={newUser.password}
                     onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                     placeholder="Digite uma senha temporária"
                   />
@@ -322,13 +326,12 @@ export default function UsersPage() {
                 </div>
               )}
 
-
               <div className="space-y-2">
                 <Label htmlFor="userType">Tipo de Usuário</Label>
                 <Select
-                  value={newUser.defUserTypeId.toString()} // Usando newUser state
+                  value={newUser.defUserTypeId.toString()}
                   onValueChange={(value) => {
-                    setNewUser({ ...newUser, defUserTypeId: parseInt(value), key: "" }) // Limpa a chave ao mudar o tipo
+                    setNewUser({ ...newUser, defUserTypeId: parseInt(value), key: "" })
                   }}
                 >
                   <SelectTrigger>
@@ -342,44 +345,55 @@ export default function UsersPage() {
                 </Select>
               </div>
 
-              {/* Campo de Chave Condicional */}
-              {(newUser.defUserTypeId === 1 || newUser.defUserTypeId === 2 || newUser.defUserTypeId === 3) && (
+              {/* Campo de Chave Condicional - only for new users if password is also present */}
+              {(!editUser && (newUser.defUserTypeId === 1 || newUser.defUserTypeId === 2 || newUser.defUserTypeId === 3)) && (
                 <div className="space-y-2">
                   <Label htmlFor="key">
                     {newUser.defUserTypeId === 1 ? "Admin Key *" : "Public Key *"}
                   </Label>
                   <Input
                     id="key"
-                    value={newUser.key} // Usando newUser state
+                    value={newUser.key}
                     onChange={(e) => setNewUser({ ...newUser, key: e.target.value })}
                     placeholder={newUser.defUserTypeId === 1 ? "Digite a Admin Key" : "Digite a Public Key"}
                   />
                 </div>
               )}
+               {/* Display Tenant ID (read-only for info) - No need to display this if it's always the logged-in user's tenant */}
+              {/*
+              <div className="space-y-2">
+                <Label htmlFor="tenantId">Tenant ID</Label>
+                <Input id="tenantId" value={newUser.tenantId} disabled />
+              </div>
+              */}
+
 
             </div>
             <DialogFooter>
               <Button
                 variant="outline"
-                onClick={() => setIsCreateUserOpen(false)}
-                disabled={isCreating} // Desabilita se estiver criando
+                onClick={() => {
+                  setIsCreateUserOpen(false);
+                  setEditUser(null); // Clear edit user state
+                }}
+                disabled={isCreating || isLoading}
               >
                 Cancelar
               </Button>
               {editUser ? (
-                 <Button
-                   onClick={handleUpdateUser}
-                   disabled={isLoading} // Use um estado de loading para update se houver
-                 >
-                   Atualizar Usuário
-                 </Button>
+                <Button
+                  onClick={handleUpdateUser}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Atualizando..." : "Atualizar Usuário"}
+                </Button>
               ) : (
-                 <Button
-                   onClick={handleCreateUser}
-                   disabled={isCreating}
-                 >
-                   {isCreating ? "Criando..." : "Criar Usuário"}
-                 </Button>
+                <Button
+                  onClick={handleCreateUser}
+                  disabled={isCreating}
+                >
+                  {isCreating ? "Criando..." : "Criar Usuário"}
+                </Button>
               )}
             </DialogFooter>
           </DialogContent>
@@ -429,29 +443,31 @@ export default function UsersPage() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Função</TableHead>
-                <TableHead>Departamento</TableHead> {/* tenantId */}
-                <TableHead>Status</TableHead> {/* defUserStatusId */}
-                <TableHead>Último Acesso</TableHead> {/* Não disponível no JSON fornecido */}
+                {/* Removed: Departamento, Status, Último Acesso */}
+                {/* If you add "Última Alteração", you'll need data for it, e.g., user.updatedAt */}
+                {/* <TableHead>Última Alteração</TableHead> */}
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isFetching ? (
-                 <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                       Carregando usuários...
-                    </TableCell>
-                 </TableRow>
+                <TableRow>
+                  {/* Adjusted colSpan from 7 to 4 */}
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    Carregando usuários...
+                  </TableCell>
+                </TableRow>
               ) : filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.fullName}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{getRoleBadge(SwitchRole(user.defUserTypeId))}</TableCell>
-                    <TableCell>{user.tenantId}</TableCell> {/* Exibindo tenantId */}
-                    <TableCell>{getStatusBadge(user.defUserStatusId)}</TableCell> {/* Exibindo status */}
-                    <TableCell>{"N/A"}</TableCell> {/* Campo Último Acesso não disponível */}
-                    <TableCell className="text-right"> {/* Alinhar à direita */}
+                    {/* Removed: user.tenantId (Departamento), getStatusBadge, "N/A" (Último Acesso) */}
+                    {/* If you display user.updatedAt for "Última Alteração":
+                    <TableCell>{new Date(user.updatedAt).toLocaleDateString()}</TableCell>
+                    */}
+                    <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm">
@@ -459,25 +475,23 @@ export default function UsersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                           {/* Adicionar lógica para popular o formulário de edição */}
-                           <DropdownMenuItem onClick={() => handleEditUser(user)}>
-                             <Edit className="h-4 w-4 mr-2" />
-                             Editar
-                           </DropdownMenuItem>
-                           {/* Adicionar lógica para alterar função/status */}
-                           <DropdownMenuItem>
-                             <Shield className="h-4 w-4 mr-2" />
-                             Alterar Função
-                           </DropdownMenuItem>
-                           <DropdownMenuItem>
-                             <ShieldCheck className="h-4 w-4 mr-2" />
-                             Alterar Status
-                           </DropdownMenuItem>
-                           {/* Adicionar lógica para remover */}
-                           <DropdownMenuItem className="text-red-600">
-                             <Trash2 className="h-4 w-4 mr-2" />
-                             Remover
-                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          {/* Add logic for these actions if needed */}
+                          <DropdownMenuItem onClick={() => toast.info("Funcionalidade 'Alterar Função' não implementada.")}>
+                            <Shield className="h-4 w-4 mr-2" />
+                            Alterar Função
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => toast.info("Funcionalidade 'Alterar Status' não implementada.")}>
+                            <ShieldCheck className="h-4 w-4 mr-2" />
+                            Alterar Status
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600" onClick={() => toast.error("Funcionalidade 'Remover' não implementada.")}>
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Remover
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -485,24 +499,23 @@ export default function UsersPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  {/* Adjusted colSpan from 7 to 4 */}
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                     Nenhum usuário encontrado com os filtros aplicados
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
-          {/* Renderiza a paginação apenas se houver dados */}
-          {recent?.count !== undefined && (
-             <TablePagination
-               count={recent?.count || 0}
-               page={page}
-               perPage={perPage}
-               onPageChange={setPage}
-               onPerPageChange={setPerPage}
-             />
+          {recent?.count !== undefined && recent.count > 0 && ( // Render pagination only if there are items
+            <TablePagination
+              count={recent?.count || 0}
+              page={page}
+              perPage={perPage}
+              onPageChange={setPage}
+              onPerPageChange={setPerPage}
+            />
           )}
-
         </CardContent>
       </Card>
       <Toaster position="bottom-right" />
