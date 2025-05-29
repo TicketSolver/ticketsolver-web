@@ -17,11 +17,11 @@ export const menuLinks = {
       href: "/t/admin/tickets",
       icon: Ticket
     },
-    {
-      title: "Relatórios",
-      href: "/t/admin/reports",
-      icon: BarChart
-    },
+    // {
+    //   title: "Relatórios",
+    //   href: "/t/admin/reports",
+    //   icon: BarChart
+    // },
     // {
     //   title: "Configurações",
     //   href: "/t/admin/settings",

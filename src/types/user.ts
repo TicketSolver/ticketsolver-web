@@ -5,7 +5,10 @@ export interface User {
     role: 'admin' | 'technician' | 'user';
     roleId: string;
 }
-
+export interface UserUpdatePayload {
+    fullName?: string;
+    defUserTypeId?: number;
+}
 
 export interface UserProfile {
     fullName: string;

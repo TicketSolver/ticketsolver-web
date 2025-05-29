@@ -1,53 +1,32 @@
-// hooks/useUpdateUser.ts
+
 import { useState } from 'react';
-
-interface UpdateUserData {
-    fullName?: string;
-    defUserTypeId?: number;
+import { UserUpdatePayload, UserProfile } from '@/types/user';
+import { updateUserViaApi } from '@/services/admin-service';
+interface HookUpdateUserResponse {
+    success: boolean;
+    message?: string;
+    data?: UserProfile;
 }
-
-interface UseUpdateUserReturn {
-    updateUser: (userId: string, data: UpdateUserData) => Promise<any>; // Consider defining a more specific return type
-    isLoading: boolean;
-    error: string | null;
-    data: any | null; // Consider defining a more specific type for the returned user data
-}
-
-export const useUpdateUser = (): UseUpdateUserReturn => {
+export function useUpdateUser() {
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [data, setData] = useState<any | null>(null);
+    const [error, setError] = useState<Error | null>(null);
 
-    const updateUser = async (userId: string, updateData: UpdateUserData) => {
+    const updateUser = async (
+        userId: string,
+        payload: UserUpdatePayload
+    ): Promise<HookUpdateUserResponse> => {
         setIsLoading(true);
         setError(null);
-        setData(null);
-
         try {
-            const response = await fetch(`/api/admin/users/${userId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(updateData),
-            });
-
-            const responseData = await response.json();
-
-            if (!response.ok) {
-                throw new Error(responseData.message || `Error ${response.status}: Failed to update user`);
-            }
-
-            setData(responseData);
-            setIsLoading(false);
-            return responseData;
+            const updatedUserData = await updateUserViaApi(userId, payload);
+            return { success: true, data: updatedUserData };
         } catch (err: any) {
-            console.error("useUpdateUser hook error:", err);
-            setError(err.message || 'An unknown error occurred');
+            setError(err);
+            return { success: false, message: err.message || 'An unexpected error occurred' };
+        } finally {
             setIsLoading(false);
-            throw err;
         }
     };
 
-    return { updateUser, isLoading, error, data };
-};
+    return { updateUser, isLoading, error };
+}
