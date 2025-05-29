@@ -1,5 +1,5 @@
 import { AdminOverview, Ticket, TicketFull } from "@/types/admin";
-import { PaginatedResponse } from "@/types/common";
+import { PaginatedResponse, ApiResponse } from "@/types/common";
 import { User, UserProfile } from "@/types/user";
 
 export async function getAdminOverview(): Promise<AdminOverview> {
@@ -33,10 +33,13 @@ export async function getAdminTickets(
 export async function getAdminUsers(
     page = 1,
     pageSize = 50
-): Promise<PaginatedResponse<UserProfile>> {
+): Promise<ApiResponse<PaginatedResponse<UserProfile>>> {
     const res = await fetch(
         `/api/admin/users?page=${page}&pageSize=${pageSize}`
     );
-    if (!res.ok) throw new Error("Falha ao buscar usuarios da empresa");
+    if (!res.ok) {
+        const errorBody = await res.json().catch(() => ({ message: 'Erro desconhecido ao buscar usuários' }));
+        throw new Error(`Falha ao buscar usuários da empresa: ${res.status} - ${errorBody.message}`);
+    }
     return res.json();
 }

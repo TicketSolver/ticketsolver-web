@@ -3,7 +3,9 @@ import {
     BaseResponse,
     LoginFormData,
     RegisterRequest,
-    VerifyInviteResponse
+    VerifyInviteResponse,
+    PreRegisterPayload,
+    PreRegisterResponse
 } from "@/types/auth"
 
 
@@ -86,7 +88,7 @@ export async function registerUser(data: RegisterRequest): Promise<BaseResponse<
 // "use server";
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5271';
 //     try {
-        
+
 //         const response = await fetch(`${API_BASE_URL}/api/Auth/login`, {
 //             method: 'POST',
 //             headers: { 'Content-Type': 'application/json' },
@@ -118,4 +120,19 @@ export function removeAuthToken(): void {
 
 export function isAuthenticated(): boolean {
     return !!getAuthToken()
+}
+
+export async function preregisterUser(payload: PreRegisterPayload): Promise<PreRegisterResponse> {
+    const res = await fetch('/api/preregister', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    })
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.message || `Erro ${res.status}`)
+    }
+
+    return res.json()
 }

@@ -1,7 +1,14 @@
+
 export interface PaginatedResponse<T> {
-    items: T[];
-    totalPages: number;
-    currentPage: number;
-    pageSize: number;
     count: number;
-    }
+    items: T[];
+    page: number;
+    pageSize: number;
+}
+
+export interface ApiResponse<T> {
+    success: boolean;
+    message: string;
+    data: T;
+    errors: any | null;
+}

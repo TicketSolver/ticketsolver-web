@@ -8,9 +8,29 @@ export interface User {
 
 
 export interface UserProfile {
-    id: string;
     fullName: string;
-    email: string;
+    createdAt: string;
+    updatedAt: string;
+    defUserStatusId: number;
+    defUserStatus: any | null;
     defUserTypeId: number;
-    tenantId:number;
+    defUserType: any | null;
+    tenantId: number;
+    tenant: any | null;
+    ticketUsers: any[];
+    id: string;
+    userName: string;
+    normalizedUserName: string;
+    email: string;
+    normalizedEmail: string;
+    emailConfirmed: boolean;
+    passwordHash: string;
+    securityStamp: string;
+    concurrencyStamp: string;
+    phoneNumber: string | null;
+    phoneNumberConfirmed: boolean;
+    twoFactorEnabled: boolean;
+    lockoutEnd: string | null;
+    lockoutEnabled: boolean;
+    accessFailedCount: number;
 }

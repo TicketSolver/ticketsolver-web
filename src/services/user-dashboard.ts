@@ -20,7 +20,7 @@ const MOCK_TICKETS: Ticket[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     category: TicketCategory.Hardware,
-    stats: TicketStatus.Open
+    stats: TicketStatus.InProgress
   },
   {
     id: '2',
@@ -33,7 +33,7 @@ const MOCK_TICKETS: Ticket[] = [
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     updatedAt: new Date(Date.now() - 3600000).toISOString(),
     category: TicketCategory.Hardware,
-    stats: TicketStatus.Open
+    stats: TicketStatus.InProgress
   }
 ];
 

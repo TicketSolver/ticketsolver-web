@@ -54,3 +54,24 @@ declare module "next-auth" {
     }
     interface User extends DefaultUser, AppUser { }
 }
+
+export interface PreRegisterPayload {
+  email: string
+  fullName: string
+  password: string
+  defUserTypeId: number
+  tenantId: number
+  key: string
+}
+
+export interface PreRegisterResponse {
+  success: boolean
+  message: string
+  data: {
+    result: {
+      succeeded: boolean
+      errors: string[]
+    }
+  }
+  errors: any
+}

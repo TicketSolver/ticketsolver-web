@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const pageSize = searchParams.get("pageSize") ?? "5";
     const tenantId = (session as any).user.tenantId;
     const token = (session as any).accessToken;
-    console.log("acesso de recents tickets")
+    console.log("acesso de usuarios")
     const url = `${BACKEND}/api/Users/tenant/${tenantId}/` +
         `?page=${encodeURIComponent(page)}` +
         `&pageSize=${encodeURIComponent(pageSize)}`;

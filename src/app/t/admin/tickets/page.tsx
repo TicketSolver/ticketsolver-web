@@ -42,10 +42,7 @@ import {
 
 import { usePagination } from "@/hooks/usePagination"
 import { useAdminTickets } from "@/hooks/useAdminTickets"
-
-// Tipos auxiliares para o UI
-type UIStatus = "new" | "in_progress" | "waiting" | "resolved" | "urgent"
-type UIPriority = "urgent" | "high" | "medium" | "low"
+import { TicketPriority, TicketStatus } from "@/types/ticket"
 
 interface TicketUI {
   id: string | number
@@ -53,29 +50,17 @@ interface TicketUI {
   category: string
   requesterName: string
   department: string
-  status: UIStatus
-  priority: UIPriority
+  status: TicketStatus
+  priority: TicketPriority
   technician: string | null
   created: string
-}
-
-// Mapeia o código numérico de status para string
-const mapStatusCode = (code: number): UIStatus => {
-  switch (code) {
-    case 0: return "new"
-    case 1: return "in_progress"
-    case 2: return "waiting"
-    case 3: return "resolved"
-    case 4: return "urgent"
-    default: return "new"
-  }
 }
 
 export default function TicketsPage() {
   const [isMounted, setIsMounted] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState<UIStatus | "all">("all")
-  const [priorityFilter, setPriorityFilter] = useState<UIPriority | "all">("all")
+  const [statusFilter, setStatusFilter] = useState<TicketStatus | "all">("all")
+  const [priorityFilter, setPriorityFilter] = useState<TicketPriority| "all">("all")
 
   const {
     page,
@@ -99,23 +84,21 @@ export default function TicketsPage() {
       items: rawData.items.map((t) => ({
         id: t.id,
         title: t.title,
-        category: t.defTicketCategory.name,
+        category: t.category.toString(),
         requesterName: typeof t.createdBy === "string" ? t.createdBy : t.createdBy.name,
         department: "",  // campo não disponível no payload
-        status: mapStatusCode(t.status),
-        priority: t.defTicketPriority.name.toLowerCase() as UIPriority,
+        status: mapStatusCode(t.status as TicketStatus),
+        priority: t.priority.toString(),
         technician: t.assignedby?.name ?? null,
         created: t.createdAt,
       })),
     }
   }, [rawData])
 
-  // atualiza total de itens na paginação
   useEffect(() => {
     updateTotal(ticketsData.count)
   }, [ticketsData.count, updateTotal])
 
-  // aplica filtros de busca, status e prioridade
   const filteredItems = useMemo(() => {
     return ticketsData.items.filter((ticket) => {
       const mSearch =
@@ -133,6 +116,8 @@ export default function TicketsPage() {
   if (!isMounted || isLoading) return <p>Carregando...</p>
   if (isError) return <p>Erro ao carregar chamados</p>
 
+  type UIStatus = "new" | "in_progress" | "waiting" | "resolved" | "urgent" | "closed" | "reopened" | "unknown";
+
   const getStatusBadge = (status: UIStatus) => {
     switch (status) {
       case "new":
@@ -145,13 +130,23 @@ export default function TicketsPage() {
         return <Badge className="bg-green-100 text-green-800">Resolvido</Badge>
       case "urgent":
         return <Badge className="bg-red-100 text-red-800">Urgente</Badge>
+      case "closed":
+        return <Badge className="bg-gray-100 text-gray-800">Fechado</Badge>
+      case "reopened":
+        return <Badge className="bg-purple-100 text-purple-800">Reaberto</Badge>
+      case "unknown":
+        return <Badge className="bg-gray-200 text-gray-600">Desconhecido</Badge>
     }
   }
+
+  type UIPriority = "urgent" | "critical" | "high" | "medium" | "low";
 
   const getPriorityBadge = (priority: UIPriority) => {
     switch (priority) {
       case "urgent":
         return <Badge variant="destructive">Urgente</Badge>
+      case "critical":
+        return <Badge className="bg-red-700 text-white">Crítico</Badge>
       case "high":
         return <Badge className="bg-orange-100 text-orange-800">Alta</Badge>
       case "medium":
@@ -197,7 +192,10 @@ export default function TicketsPage() {
                 className="pl-10"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select
+              value={statusFilter.toString()}
+              onValueChange={(v) => setStatusFilter(v as TicketStatus | "all")}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -210,7 +208,7 @@ export default function TicketsPage() {
                 <SelectItem value="urgent">Urgentes</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+            <Select value={priorityFilter.toString()} onValueChange={(v) => setPriorityFilter(v as TicketPriority | "all")}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Prioridade" />
               </SelectTrigger>
@@ -265,7 +263,7 @@ export default function TicketsPage() {
                     </div>
                   </TableCell>
                   <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                  <TableCell>{getPriorityBadge(ticket.priority)}</TableCell>
+                  <TableCell>{getPriorityBadge(mapPriorityCode(ticket.priority))}</TableCell>
                   <TableCell>
                     {ticket.technician ? (
                       <div className="flex items-center gap-2">
@@ -357,3 +355,39 @@ export default function TicketsPage() {
     </DashboardShell>
   )
 }
+function mapStatusCode(arg0: TicketStatus): any {
+  switch (arg0) {
+    case TicketStatus.New:
+      return "new"
+    case TicketStatus.InProgress:
+      return "in_progress"
+    case TicketStatus.Resolved:
+      return "resolved"
+    case TicketStatus.Closed:
+      return "closed"
+    case TicketStatus.Reopened:
+      return "reopened"
+    default:
+      return "unknown"
+  }
+}
+
+function mapPriorityCode(priority: string | TicketPriority): "critical" | "high" | "medium" | "low" {
+  switch (priority) {
+    case "Critical":
+    case TicketPriority.Critical:
+      return "critical"
+    case "high":
+    case TicketPriority.High:
+      return "high"
+    case "medium":
+    case TicketPriority.Medium:
+      return "medium"
+    case "low":
+    case TicketPriority.Low:
+      return "low"
+    default:
+      return "low"
+  }
+}
+
