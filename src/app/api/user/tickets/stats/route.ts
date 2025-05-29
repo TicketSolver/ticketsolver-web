@@ -1,47 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { parseJwt } from "@/utils/jwt";
+import { getServerSession } from "next-auth";
+import { nextAuthConfig } from "@/lib/nextAuth";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://seu-backend-api.com';
 
 export async function GET(request: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
+        const session = await getServerSession(nextAuthConfig);
         
-        if (!token) {
-            console.log("Token não encontrado nas requisição de estatísticas");
+        if (!session) {
             return NextResponse.json(
-                { success: false, message: 'Não autorizado' },
+                { success: false, message: 'Unauthorized' },
                 { status: 401 }
             );
         }
-        const decoded = parseJwt(token);
-        if (!decoded) {
-            console.error("Falha ao decodificar token nas estatísticas");
-            return NextResponse.json(
-                { success: false, message: 'Token inválido' },
-                { status: 401 }
-            );
-        }
-        
-        const userId = decoded?.nameid || decoded?.sub;
-        console.log("ID do usuário obtido do token:", userId);
-        
-        if (!userId) {
-            return NextResponse.json(
-                { success: false, message: 'ID do usuário não encontrado no token' },
-                { status: 400 }
-            );
-        }
-        const url = `${API_BASE_URL}/api/Tickets/stats/${userId}`;
+        const url = `${API_BASE_URL}/api/Tickets/stats/${session.user.id}`;
         console.log("Chamando API externa:", url);
 
         const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${session.user.token}`
             },
             next: { revalidate: 60 }
         });

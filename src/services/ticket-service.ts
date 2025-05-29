@@ -1,3 +1,4 @@
+import { mockTickets } from "@/mocks/user-dashboard"
 import { TicketRequest, Ticket } from "@/types/ticket"
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK_API === "false"
 
@@ -19,12 +20,29 @@ export async function createTicket(input: TicketRequest): Promise<Ticket> {
 }
 
 export async function getTechnicianTickets(pagination: PaginatedQuery, isHistory?: boolean) {
-    if (USE_MOCK || true) {
+    if (USE_MOCK) {
         await delay(500)
         return { data: { items: mockTickets, count: 4 }, success: true };
     }
 
-    const res = await fetch(`/api/tickets/tech?page=${pagination.page}&pageSize=${pagination.pageSize}${isHistory ? '&history=true' : ''}`)
+    return await getTickets('tech', pagination, isHistory ? '&history=true' : '');
+}
+
+
+export async function getUserTickets(pagination: PaginatedQuery, isHistory?: boolean) {
+    if (USE_MOCK) {
+        await delay(500)
+        return { data: { items: mockTickets, count: 4 }, success: true };
+    }
+
+    return await getTickets('user', pagination, isHistory ? '&history=true' : '');
+}
+
+
+export type TicketFetchType = 'tech' | 'user' | 'admin';
+
+export async function getTickets(type: TicketFetchType, pagination: PaginatedQuery, query?: string){
+    const res = await fetch(`/api/tickets/${type}?page=${pagination.page}&pageSize=${pagination.pageSize}${query ? query : ''}`)
     if (!res.ok) {
         throw new Error("Falha ao obter tickets")
     }
@@ -40,7 +58,15 @@ export async function getTechnicianPerformance() {
 }
 
 export async function getTechnicianCounters() {
-    const res = await fetch(`/api/tickets/tech/counters`)
+    return await getEntityCounters('tech');
+}
+
+export async function getUserCounters() {
+    return await getEntityCounters('user');
+}
+
+export async function getEntityCounters(type: TicketFetchType) {
+    const res = await fetch(`/api/tickets/${type}/counters`)
     if (!res.ok) {
         throw new Error("Falha ao obter tickets")
     }

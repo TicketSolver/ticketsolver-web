@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
       'Authorization': `Bearer ${session.user.token}`
     },
   });
-  
+
   const data = await ticketResponse.json();
 
-  return NextResponse.json(data);
+  return NextResponse.json(data, { status: ticketResponse.status });
 }
