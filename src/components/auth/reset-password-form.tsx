@@ -10,7 +10,7 @@ import { Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 
 const resetPasswordSchema = z.object({
@@ -23,7 +23,7 @@ const resetPasswordSchema = z.object({
 
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
 
-export function ResetPasswordForm({ token }: { token: string }) {
+export function ResetPasswordForm({ token }: { readonly token: string }) {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -31,16 +31,11 @@ export function ResetPasswordForm({ token }: { token: string }) {
   const [isMounted, setIsMounted] = useState(false)
   const [isTokenValid, setIsTokenValid] = useState(true)
 
-  // Verificar token ao carregar
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        // Em produção, você validaria o token com seu backend
         console.log("Verificando token:", token)
-        // Simular validação do token
         await new Promise(resolve => setTimeout(resolve, 500))
-        
-        // Se o token for inválido, atualize o estado
         if (token === "invalid") {
           setIsTokenValid(false)
         }
@@ -66,14 +61,9 @@ export function ResetPasswordForm({ token }: { token: string }) {
     setIsLoading(true)
     
     try {
-      // Aqui você implementaria a lógica real de redefinição de senha
       console.log("Redefinindo senha com token:", token)
       console.log("Nova senha:", data.password)
-      
-      // Simular resposta do servidor
       await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // Redirecionar para a página de login após redefinição bem-sucedida
       router.push("/auth/login?reset=success")
     } catch (error) {
       console.error("Erro ao redefinir senha:", error)
@@ -81,13 +71,9 @@ export function ResetPasswordForm({ token }: { token: string }) {
       setIsLoading(false)
     }
   }
-
-  // Renderiza um placeholder até que o componente seja montado no cliente
   if (!isMounted) {
     return <div className="w-full max-w-md mx-auto p-8">Carregando...</div>
   }
-
-  // Se o token for inválido, mostrar mensagem de erro
   if (!isTokenValid) {
     return (
       <Card className="w-full max-w-md mx-auto">

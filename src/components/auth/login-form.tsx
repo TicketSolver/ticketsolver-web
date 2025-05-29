@@ -1,18 +1,21 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Eye, EyeOff } from "lucide-react"
-
+import { toast } from "sonner"
+//import { getRoleFromToken, debugJwtToken } from "@/utils/jwt"
+import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 const loginSchema = z.object({
   email: z.string().email("Digite um email válido"),
@@ -23,9 +26,10 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export function LoginForm() {
-  const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { push } = useRouter();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -35,20 +39,33 @@ export function LoginForm() {
       rememberMe: false,
     },
   })
+// async function onSubmit(data: LoginFormValues) {
 
-  async function onSubmit(data: LoginFormValues) {
-    setIsLoading(true)
-    
-    try {
-      console.log("Dados de login:", data)
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      router.push("/dashboard")
-    } catch (error) {
-      console.error("Erro ao fazer login:", error)
-    } finally {
-      setIsLoading(false)
-    }
+  
+// }
+async function onSubmit(data: LoginFormValues) {
+  setIsLoading(true)
+  
+  try {
+    const result = await signIn('credentials',
+      {
+      redirect: false,
+      email: data.email,
+      password: data.password
+    })
+
+    setTimeout(() => {
+      push('/dashboard')
+    }, 500);
+   } catch (error) {
+    console.error("Erro ao fazer login:", error)
+    toast.error("Erro ao tentar realizar login")
+  } finally {
+    setIsLoading(false)
   }
+}
+
+
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -83,10 +100,10 @@ export function LoginForm() {
                   <FormLabel>Senha</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input 
-                        type={showPassword ? "text" : "password"} 
-                        placeholder="Senha" 
-                        {...field} 
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Senha"
+                        {...field}
                       />
                       <Button
                         type="button"
@@ -95,7 +112,7 @@ export function LoginForm() {
                         className="absolute right-0 top-0 h-full px-3"
                         onClick={() => setShowPassword(!showPassword)}
                       >
-                        {showPassword ? <Eye size={16}  /> :<EyeOff size={16} />}
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </Button>
                     </div>
                   </FormControl>
@@ -110,8 +127,8 @@ export function LoginForm() {
                 name="rememberMe"
                 render={({ field }) => (
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="rememberMe" 
+                    <Checkbox
+                      id="rememberMe"
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
