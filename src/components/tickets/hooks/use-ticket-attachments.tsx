@@ -23,7 +23,6 @@ export function useTicketAttachments(ticketId: string | number) {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     staleTime: 10000000,
-    enabled: false,
   });
 
   function onDeleteAttachment(attachmentId: number | string) {
@@ -41,7 +40,7 @@ export function useTicketAttachments(ticketId: string | number) {
   }
 
   return {
-    attachments: { data: [{ id: 1, url: '/123', fileName: '123' }], success: true },
+    attachments,
     isLoading: isLoading || isRefetching,
     isError,
     isUpdatingCache,

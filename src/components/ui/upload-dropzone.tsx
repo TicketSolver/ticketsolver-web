@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { UploadCloud } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Props = {
   onFilesSelected: (files: FileList) => void;
@@ -30,7 +31,10 @@ export function UploadDropzone({ onFilesSelected, isLoading }: Props) {
         setIsHovering(false);
       }}
       onDrop={handleDrop}
-      className="flex flex-col items-center justify-center border-4 border-dashed border-muted rounded-xl p-6 text-center cursor-pointer hover:bg-muted/50 transition"
+      className={cn(
+        "flex flex-col items-center justify-center border-4 border-dashed border-muted rounded-xl p-6 text-center cursor-pointer transition",
+        isLoading ? 'cursor-not-allowed' : 'hover:bg-muted/50'
+      )}
       onClick={() => {
         if(isLoading) return;
         fileInputRef.current?.click()
