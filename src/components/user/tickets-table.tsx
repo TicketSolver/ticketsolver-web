@@ -2,7 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import { Button } from "../ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "../ui/table";
 import { TicketStatusBadge } from "../ui/ticket-status-badge";
 import Link from "next/link";

@@ -12,7 +12,7 @@ import { Ticket } from "@/types/ticket";
 import { getUserTickets } from "@/services/ticket-service";
 
 export function UserRecentTickets() {
-  const { data: tickets, isLoading } = useQuery({
+  const { data: tickets, isLoading } = useQuery<PaginatedApiResponse<Ticket>>({
     queryKey: ['user', 'tickets', 'recent'],
     queryFn: () => getUserTickets({ page: 1, pageSize: 5 }),
   });
@@ -26,7 +26,7 @@ export function UserRecentTickets() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {tickets?.length > 0 ? (
+        {tickets?.data?.items?.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -37,7 +37,7 @@ export function UserRecentTickets() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tickets.map((ticket) => (
+              {tickets.data.items.map((ticket) => (
                 <UsertTicketItem ticket={ticket} key={ticket.id} />
               ))}
             </TableBody>
