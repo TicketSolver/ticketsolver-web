@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { nextAuthConfig } from '@/lib/nextAuth';
-const BACKEND = process.env.BACKEND_URL || "http://localhost:5271";
+const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5271";
 interface BackendErrorDetail {
     [key: string]: string[];
 }

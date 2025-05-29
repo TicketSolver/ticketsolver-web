@@ -1,7 +1,7 @@
 // src/app/api/Auth/preregister/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 
-const BACKEND = process.env.BACKEND_URL || "http://localhost:5271"
+const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5271"
 
 export async function POST(req: NextRequest) {
     try {
