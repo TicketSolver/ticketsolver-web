@@ -66,10 +66,10 @@ export const menuLinks = {
       href: "/t/user/tickets",
       icon: Ticket
     },
-    {
-      title: "Permitir Acesso",
-      href: "/t/user/dashboard/grant-access",
-      icon: Monitor
-    }
+    // {
+    //   title: "Permitir Acesso",
+    //   href: "/t/user/dashboard/grant-access",
+    //   icon: Monitor
+    // },
   ]
 }
