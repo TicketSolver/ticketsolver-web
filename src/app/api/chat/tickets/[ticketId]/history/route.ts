@@ -1,37 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { nextAuthConfig } from '@/lib/nextAuth'
 
-const API_BASE = process.env.API_BASE_URL || 'http://localhost:5271'
-
-interface Params {
-    ticketId: string
-}
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL!
 
 export async function GET(
-    request: NextRequest,
-    { params }: { params: Params }
+  request: NextRequest,
+  context: { params: { ticketId: string } }
 ) {
-    try {
-        const { searchParams } = new URL(request.url)
-        const page = searchParams.get('page') || '1'
-        const pageSize = searchParams.get('pageSize') || '50'
-        const authHeader = request.headers.get('authorization')
+  const { ticketId } = await context.params
 
-        const response = await fetch(
-            `${API_BASE}/api/chat/tickets/${params.ticketId}/history?page=${page}&pageSize=${pageSize}`,
-            {
-                method: 'GET',
-                headers: {
-                    'Authorization': authHeader || '',
-                },
-            }
-        )
+  const session = await getServerSession(nextAuthConfig)
+  if (!session) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
+  const token = (session as any).accessToken
 
-        const data = await response.json()
-        return NextResponse.json(data, { status: response.status })
-    } catch (error) {
-        return NextResponse.json(
-            { message: 'Erro interno do servidor' },
-            { status: 500 }
-        )
+  const url = new URL(request.url)
+  const page = url.searchParams.get('page') || '1'
+  const pageSize = url.searchParams.get('pageSize') || '50'
+
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/chat/tickets/${ticketId}/history?page=${page}&pageSize=${pageSize}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    const ct = res.headers.get('content-type') || ''
+    if (ct.includes('application/json')) {
+      const data = await res.json()
+      return NextResponse.json(data, { status: res.status })
+    } else {
+      const txt = await res.text()
+      console.error('Resposta não-JSON do histórico:', txt)
+      return NextResponse.json(
+        { error: 'Resposta inválida do servidor' },
+        { status: 502 }
+      )
     }
+  } catch (err) {
+    console.error('Erro interno ao buscar histórico:', err)
+    return NextResponse.json({ message: 'Erro interno' }, { status: 500 })
+  }
 }
