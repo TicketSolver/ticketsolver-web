@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 
 interface HeaderProps {
   readonly userRole: "admin" | "technician" | "user";
@@ -33,7 +33,7 @@ export function Header({ userRole }: HeaderProps) {
   const [notifications] = useState(3)
   
   const handleLogout = () => {
-    router.push("/auth/login")
+  signOut({ callbackUrl: "/auth/login" }) 
   }
   
   const userName = (session?.user as any)?.name || '';
