@@ -23,20 +23,12 @@ export async function createTicket(input: TicketRequest): Promise<Ticket> {
 }
 
 export async function getTechnicianTickets(pagination: PaginatedQuery, isHistory?: boolean) {
-    if (USE_MOCK) {
-        await delay(500)
-        return { data: { items: mockTickets, count: 4 }, success: true };
-    }
 
     return await getTickets('tech', pagination, isHistory ? '&history=true' : '');
 }
 
 
 export async function getUserTickets(pagination: PaginatedQuery, isHistory?: boolean) {
-    // if (USE_MOCK) {
-    //     await delay(500)
-    //     return { data: { items: mockTickets, count: 4 }, success: true };
-    // }
     console.log('Fetching user tickets', pagination, isHistory);
     return await getTickets('user', pagination, isHistory ? '&history=true' : '');
 }

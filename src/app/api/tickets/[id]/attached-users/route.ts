@@ -2,6 +2,8 @@ import { nextAuthConfig } from "@/lib/nextAuth";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
+const BACKEND = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5271"
+
 export async function GET(req, { params }: { params: Promise<{ id: string }> }) {
   const { id: ticketId } = await params;
   const session = await getServerSession(nextAuthConfig);
@@ -9,7 +11,7 @@ export async function GET(req, { params }: { params: Promise<{ id: string }> }) 
   if (!session)
     return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401, });
 
-  const url = `${process.env.NEXT_PUBLIC_API_URl}/api/tickets/${ticketId}/users`;
+  const url = `${BACKEND}/api/tickets/${ticketId}/users`;
 
   const ticketResponse = await fetch(url, {
     headers: {
@@ -33,7 +35,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!body.userIds)
     return NextResponse.json({ success: false, message: "Usuário não encontrado!" }, { status: 400, });
 
-  const url = `${process.env.NEXT_PUBLIC_API_URl}/api/tickets/${ticketId}/assign/users`;
+  const url = `${BACKEND}/api/tickets/${ticketId}/assign/users`;
 
   const ticketResponse = await fetch(url, {
     method: 'PUT',

@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { nextAuthConfig } from '@/lib/nextAuth'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL!
-
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5271"
+ 
 export async function GET(
   request: NextRequest,
   context: { params: { ticketId: string } }
@@ -14,7 +14,7 @@ export async function GET(
   if (!session) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   }
-  const token = (session as any).accessToken
+  const token = session.user.token
 
   const url = new URL(request.url)
   const page = url.searchParams.get('page') || '1'
@@ -25,18 +25,11 @@ export async function GET(
       `${API_BASE}/api/chat/tickets/${ticketId}/history?page=${page}&pageSize=${pageSize}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
-    const ct = res.headers.get('content-type') || ''
-    if (ct.includes('application/json')) {
-      const data = await res.json()
-      return NextResponse.json(data, { status: res.status })
-    } else {
-      const txt = await res.text()
-      console.error('Resposta não-JSON do histórico:', txt)
-      return NextResponse.json(
-        { error: 'Resposta inválida do servidor' },
-        { status: 502 }
-      )
-    }
+
+    if(!res.ok)
+      return NextResponse.json({ message: 'Erro interno' }, { status: 500 })
+    return NextResponse.json(await res.json());
+
   } catch (err) {
     console.error('Erro interno ao buscar histórico:', err)
     return NextResponse.json({ message: 'Erro interno' }, { status: 500 })

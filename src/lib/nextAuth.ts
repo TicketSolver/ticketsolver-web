@@ -1,5 +1,5 @@
 import { login } from "@/actions/authActions";
-import { type AuthOptions } from "next-auth"
+import { User, type AuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials";
 
 
@@ -12,24 +12,23 @@ export const nextAuthConfig: AuthOptions = {
                 email: { label: "Usuário", type: "text", placeholder: "jsmith" },
                 password: { label: "Senha", type: "password" },
             },
-            async authorize(credentials) {
-                if (!credentials || !credentials.email || !credentials.password) return null;
-                console.log("Tentando fazer login com:", credentials.email);
-                const res = await login(
-                    {
-                        email: credentials.email,
-                        password: credentials.password
-                    });
-                if (!res.success) {
-                    throw new Error("Erro ao fazer login");
-                }
-                const {
-                    token,
-                    user,
-                } = res.data!;
-                const session = { ...user, token, role: user.role, tenantId: user.tenantId };
-                return session as any;
-            },
+            authorize: async (credentials, _req) => {
+            if (!credentials?.email || !credentials?.password) return null;
+
+            const res = await login({ email: credentials.email, password: credentials.password });
+            if (!res.success || !res.data) return null;
+
+            const { token, user } = res.data;
+
+            return {
+                ...user,
+                token,               // necessário para jwt callback
+                role: user.role,     // campos adicionais
+                tenantId: user.tenantId,
+            } satisfies User;
+            }
+
+
         })
     ],
 
@@ -41,11 +40,12 @@ export const nextAuthConfig: AuthOptions = {
             }
             return token;
         },
-        async session({ session, token }) {
-            session.user = token.user as any;
-            (session as any).accessToken = token.accessToken;
-            return session;
-        },
+            async session({ session, token }) {
+        session.user = {
+            ...(token.user as any),
+            accessToken: token.accessToken,
+        };
+        return session;},
     },
 
     pages: {

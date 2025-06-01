@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { nextAuthConfig } from "@/lib/nextAuth";
+import { nextAuthConfig } from "@/lib/nextAuth"
+
+const BACKEND = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5271"
 
 export async function POST(
   req: NextRequest,
@@ -11,8 +13,8 @@ export async function POST(
   if (!session) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
-  const token = (session as any).accessToken;
-
+  const token = (session.user as any).accessToken;
+  console.log("Token enviado:", token);
   const { ticketId } = await context.params
 
   let payload: any;
@@ -31,22 +33,22 @@ export async function POST(
 
   // 2) Envia o JSON correto para a API externa
   const apiRes = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/chat/tickets/${ticketId}/start`,
+    `${BACKEND}/api/chat/tickets/${ticketId}/start`,
     {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        // "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(content),
+      body: JSON.stringify({ content }),
     }
   );
 
-  // 3) Leia o corpo apenas uma vez
-  const data = await apiRes.json();
-  if (!apiRes.ok) {
-    console.log("Erro da API:", data);
-  }
+  console.log(apiRes)
 
-  return NextResponse.json(data, { status: apiRes.status });
+  if (!apiRes.ok) {
+    return NextResponse.json({ message: 'Erro interno' }, { status: 500 })
+  }
+  return NextResponse.json(await apiRes.json(), { status: apiRes.status });
+
 }

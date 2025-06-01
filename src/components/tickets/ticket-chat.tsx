@@ -10,7 +10,7 @@ export function TicketChat({ ticket }: { ticket: any }) {
       <CardHeader>
         <CardTitle>Chat de Atendimento</CardTitle>
         <CardDescription>
-          Converse com o técnico ou o Agente IA
+          Converse com o técnico o Agente IA
         </CardDescription>
       </CardHeader>
       <CardContent>

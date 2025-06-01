@@ -27,7 +27,7 @@ export function TicketPage({ ticketId }: { ticketId: string | number }) {
 
           <TicketAttachments ticket={ticket} />
 
-          {/* <TicketChat ticket={ticket} /> */}
+           <TicketChat ticket={ticket} /> 
         </>
       ) : (
         <>

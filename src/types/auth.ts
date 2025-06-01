@@ -43,6 +43,15 @@ export type RegisterFormValues = {
   inviteCode: string
 }
 
+export interface AppUser {
+  id: string
+  name: string
+  email: string
+  token: string
+  role: string
+  tenantId: string
+}
+
 export interface RegisterRequest {
   email: string
   password: string
@@ -51,6 +60,7 @@ export interface RegisterRequest {
 declare module "next-auth" {
     interface Session extends DefaultSession {
         user: AppUser;
+        accessToken: string
     }
     interface User extends DefaultUser, AppUser { }
 }

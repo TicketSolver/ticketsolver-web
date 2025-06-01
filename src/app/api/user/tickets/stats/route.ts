@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { nextAuthConfig } from "@/lib/nextAuth";
 
-const NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://seu-backend-api.com';
+const BACKEND = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5271"
 
 export async function GET(request: NextRequest) {
     try {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
                 { status: 401 }
             );
         }
-        const url = `${NEXT_PUBLIC_API_BASE_URL}/api/Tickets/stats/${session.user.id}`;
+        const url = `${BACKEND}/api/Tickets/stats/${session.user.id}`;
         console.log("Chamando API externa:", url);
 
         const response = await fetch(url, {

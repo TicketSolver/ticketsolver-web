@@ -3,8 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { nextAuthConfig } from '@/lib/nextAuth'
 
-
-const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL!
+const BACKEND = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5271"
 
 export async function GET(
   request: NextRequest,
@@ -15,13 +14,13 @@ export async function GET(
   if (!session) {
     return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 })
   }
-  const token = (session as any).accessToken
+  const token = session.user.token
   if (!token) {
     return NextResponse.json({ success: false, error: 'Token não encontrado' }, { status: 401 })
   }
 
   try {
-    const res = await fetch(`${backendUrl}/api/Tickets/${ticketId}`, {
+    const res = await fetch(`${BACKEND}/api/Tickets/${ticketId}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (!res.ok) {

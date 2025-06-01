@@ -2,6 +2,8 @@ import { nextAuthConfig } from "@/lib/nextAuth";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
+const BACKEND = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5271"
+
 export async function PATCH(req, { params }: { params: Promise<{ id: string }> }) {
   const { id: ticketId } = await params;
   const body = await req.json();
@@ -13,7 +15,7 @@ export async function PATCH(req, { params }: { params: Promise<{ id: string }> }
   if (!body.userId)
     return NextResponse.json({ success: false, message: "Usuário não encontrado!" }, { status: 400, });
   
-  const url = `${process.env.NEXT_PUBLIC_API_URl}/api/tickets/${ticketId}/unassign/${body.userId}`;
+  const url = `${BACKEND}/api/tickets/${ticketId}/unassign/${body.userId}`;
 
   const ticketResponse = await fetch(url, {
     method: 'PATCH',
