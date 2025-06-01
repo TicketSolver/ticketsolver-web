@@ -8,6 +8,8 @@ export interface Ticket {
     updatedAt: string;
     assignedToId: string
     createdById: string | number;
+    defTicketPriorityId: number;
+    defTicketCategoryId: number;
     category?: TicketCategory;
     priority?: TicketPriority;
     stats?: TicketStatus;

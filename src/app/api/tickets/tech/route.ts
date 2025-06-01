@@ -11,11 +11,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401, });
 
   const history = searchParams.get('history');
-  const pagination = getPagination({
+  const paginationStr = getPagination({
     page: +searchParams.get('page'),
     pageSize: +searchParams.get('pageSize'),
-  })
-  const url = `${process.env.NEXT_PUBLIC_API_URl}/api/tickets/technician/?${pagination}${history ? 'history=true' : ''}`;
+  });
+
+  const url = `${process.env.NEXT_PUBLIC_API_URl}/api/tickets/technician/?${paginationStr}${history ? 'history=true' : ''}`;
 
   const ticketResponse = await fetch(url, {
     headers: {
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
+  console.log(ticketResponse, session.user.token, 'res');
   const data = await ticketResponse.json();
 
   return NextResponse.json(data, { status: ticketResponse.status });

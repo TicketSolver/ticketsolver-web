@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const API_BASE = process.env.API_BASE_URL || 'http://localhost:5271'
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5271'
 
 export async function POST(request: NextRequest) {
   try {

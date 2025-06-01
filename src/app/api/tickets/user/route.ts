@@ -2,7 +2,7 @@ import { nextAuthConfig } from "@/lib/nextAuth";
 import { getPagination } from "@/utils/pagination";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5271";
 export async function GET(request: NextRequest) {
   const session = await getServerSession(nextAuthConfig);
   const { searchParams } = new URL(request.url);
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     pageSize: +searchParams.get('pageSize'),
   });
   
-  const url = `${process.env.NEXT_PUBLIC_API_URl}/api/tickets/user?${paginationStr}`;
+  const url = `${BACKEND}/api/Tickets/user?${paginationStr}`;
 
   const ticketResponse = await fetch(url, {
     headers: {

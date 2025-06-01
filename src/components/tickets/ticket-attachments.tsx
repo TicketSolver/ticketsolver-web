@@ -16,9 +16,12 @@ export function TicketAttachments({ ticket }: { ticket: any }) {
   async function handleUploadFiles() {
     setIsUploading(true);
 
+    const promises = [];
     for (const file of uploadingFiles) {
-      await handleUploadFile(file)
+      promises.push(handleUploadFile(file));
     }
+
+    await Promise.all(promises);
 
     setUploadingFiles(null);
     setIsUploading(false);
@@ -105,12 +108,12 @@ function TicketAttachment({
   }
 
   return (
-    <div className="relative border p-2 rounded-lg bg-muted/50 flex items-center gap-4 w-full max-w-[220px]">
+    <div className="relative border p-2 rounded-lg bg-muted/50 flex items-center gap-4 w-full max-w-[250px]">
       <a href={attachment.url} target="_blank" rel="noreferer noopener" className="p-2 flex gap-4 w-full">
         <File className="w-4 h-4" />
 
         <div className="flex-1 w-full">
-          <p className="text-xs font-medium line-clamp-1">{attachment.fileName}</p>
+          <p className="text-xs font-medium line-clamp-1 max-w-[120px] whitespace-nowrap text-ellipsis">{attachment.fileName}</p>
         </div>
       </a>
 

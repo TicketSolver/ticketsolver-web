@@ -1,14 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { nextAuthConfig } from "@/lib/nextAuth";
-const BACKEND = process.env.NEXT_PUBLIC_API_URl || "http://localhost:5271";
-export async function GET(request: NextRequest) {
+import { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
+
+export async function GET(req, { params }: { params: Promise<{ id: string }> }) {
+  const { id: ticketId } = await params;
   const session = await getServerSession(nextAuthConfig);
 
   if (!session)
     return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401, });
 
-  const url = `${BACKEND}/api/tickets/user/counters`;
+  const url = `${process.env.NEXT_PUBLIC_API_URl}/api/tickets/${ticketId}/users/available`;
 
   const ticketResponse = await fetch(url, {
     headers: {
@@ -18,5 +19,5 @@ export async function GET(request: NextRequest) {
 
   const data = await ticketResponse.json();
 
-  return NextResponse.json(data, { status: ticketResponse.status });
+  return NextResponse.json(data);
 }
