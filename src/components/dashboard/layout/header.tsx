@@ -1,27 +1,24 @@
 "use client"
 
-import { useState } from "react"
-import { 
-  Bell, 
-  User, 
-  LogOut, 
-  Settings, 
-  HelpCircle, 
+import {
+  User,
+  LogOut,
+  Settings,
+  HelpCircle,
   ChevronDown
 } from "lucide-react"
-import { useRouter } from "next/navigation"
 
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useSession } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 
 interface HeaderProps {
   readonly userRole: "admin" | "technician" | "user";
@@ -29,13 +26,11 @@ interface HeaderProps {
 
 export function Header({ userRole }: HeaderProps) {
   const { data: session } = useSession();
-  const router = useRouter()
-  const [notifications] = useState(3)
-  
-  const handleLogout = () => {
-    router.push("/auth/login")
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/auth/login' });
   }
-  
+
   const userName = (session?.user as any)?.name || '';
   const initials = userName
     .split(" ")
@@ -43,12 +38,12 @@ export function Header({ userRole }: HeaderProps) {
     .join("")
     .toUpperCase()
     .slice(0, 2)
-  
+
   return (
     <header className="border-b bg-background h-16 px-4 flex items-center justify-between">
       <div className="flex items-center w-full max-w-md">
       </div>
-      
+
       <div className="flex items-center gap-2">
         {/* <div className="relative">
           <Button variant="ghost" size="icon" className="rounded-full">
@@ -60,7 +55,7 @@ export function Header({ userRole }: HeaderProps) {
             )}
           </Button>
         </div> */}
-        
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2 pl-2 pr-1">

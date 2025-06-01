@@ -6,6 +6,7 @@ import { TicketChat } from "./ticket-chat";
 import { TicketHeader } from "./ticket-header";
 import { fetchTicketById } from "@/services/user-dashboard";
 import { Ticket } from "@/types/ticket";
+import { TicketTechnicians } from "./ticket-technicians";
 
 export function TicketPage({ ticketId }: { ticketId: string | number }) {
   const { data: ticket, isLoading } = useQuery<Ticket>({
@@ -22,9 +23,11 @@ export function TicketPage({ ticketId }: { ticketId: string | number }) {
         <>
           <TicketHeader ticket={ticket} />
 
+          <TicketTechnicians ticketId={ticketId} />
+
           <TicketAttachments ticket={ticket} />
 
-          <TicketChat ticket={ticket} />
+          {/* <TicketChat ticket={ticket} /> */}
         </>
       ) : (
         <>

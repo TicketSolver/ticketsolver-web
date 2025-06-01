@@ -41,7 +41,7 @@ export async function getUserTickets(pagination: PaginatedQuery, isHistory?: boo
 
 export type TicketFetchType = 'tech' | 'user' | 'admin';
 
-export async function getTickets(type: TicketFetchType, pagination: PaginatedQuery, query?: string){
+export async function getTickets(type: TicketFetchType, pagination: PaginatedQuery, query?: string) {
     const res = await fetch(`/api/tickets/${type}?page=${pagination.page}&pageSize=${pagination.pageSize}${query ? query : ''}`)
     if (!res.ok) {
         throw new Error("Falha ao obter tickets")
@@ -102,5 +102,44 @@ export async function uploadAttachment(ticketId: string | number, file: File) {
         throw new Error("Falha ao enviar anexo do ticket");
     }
 
+    return res.json();
+}
+
+export async function getTicketUsers(ticketId: number) {
+    const res = await fetch(`/api/tickets/${ticketId}/attached-users`,);
+    if (!res.ok) {
+        throw new Error("Falha ao obter usuários de ticket")
+    }
+    return res.json();
+}
+
+export async function getUnassingedTechnicians(ticketId: number) {
+    const res = await fetch(`/api/tickets/${ticketId}/attached-users/available`,);
+    if (!res.ok) {
+        throw new Error("Falha ao obter usuários de ticket")
+    }
+    return res.json();
+}
+
+export async function unassingUser(ticketId: number, userId: string) {
+    const res = await fetch(`/api/tickets/${ticketId}/unassing`, {
+        method: 'PATCH',
+        body: JSON.stringify({ userId }),
+    });
+
+    if (!res.ok) {
+        throw new Error("Falha ao obter usuários de ticket")
+    }
+    return res.json();
+}
+
+export async function assignUsersToTicket(ticketId: number, userIds: string[]) {
+    const res = await fetch(`/api/tickets/${ticketId}/attached-users`, {
+        method: 'POST',
+        body: JSON.stringify({ userIds }),
+    });
+    if (!res.ok) {
+        throw new Error("Falha ao obter usuários de ticket")
+    }
     return res.json();
 }
