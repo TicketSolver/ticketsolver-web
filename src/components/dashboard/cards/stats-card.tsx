@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 
 interface StatsCardProps {
   title: string;
-  value: string | number;
+  value?: string | number;
   icon: LucideIcon;
   description?: string;
   trend?: {
@@ -28,7 +28,7 @@ export function StatsCard({
         <div className="flex justify-between items-start">
           <div>
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <h3 className="text-2xl font-bold mt-1">{value}</h3>
+            <h3 className="text-2xl font-bold mt-1">{value || 0}</h3>
             
             {trend && (
               <div className="flex items-center mt-1">

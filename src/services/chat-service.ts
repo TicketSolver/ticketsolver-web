@@ -1,133 +1,124 @@
+// services/chat-service.ts
+import {
+  ChatMessage,
+  SendMessageRequest,
+  ChatHistory,
+  ChatInfo
+} from "@/types/chat/chat";
+import { getAuthHeaders } from "./auth-client";
+import { getTicketById } from "./ticket-service";
 
-import { ChatMessage, SendMessageRequest, ChatHistory, ChatInfo } from "@/types/chat/chat"
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('auth_token')
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': token ? `Bearer ${token}` : '',
-  }
-}
-
-export async function sendMessage(request: SendMessageRequest): Promise<ChatMessage> {
-  const response = await fetch(`/api/chat/messages`, {
-    method: 'POST',
+export async function sendMessage(
+  request: SendMessageRequest
+): Promise<ChatMessage> {
+  const res = await fetch("/api/chat/messages", {
+    method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(request),
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Erro ao enviar mensagem')
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Erro ao enviar mensagem");
   }
-
-  const result = await response.json()
-  return result.data
+  return (await res.json()).data;
 }
 
 export async function getChatHistory(
-  ticketId: number, 
-  page: number = 1, 
-  pageSize: number = 50
+  ticketId: number,
+  page = 1,
+  pageSize = 50
 ): Promise<ChatHistory> {
-  const response = await fetch(
+  const res = await fetch(
     `/api/chat/tickets/${ticketId}/history?page=${page}&pageSize=${pageSize}`,
-    {
-      headers: getAuthHeaders(),
-    }
-  )
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Erro ao buscar histórico')
+    { headers: getAuthHeaders() }
+  );
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Erro ao buscar histórico");
   }
-
-  const result = await response.json()
-  return result.data
+  return (await res.json()).data;
 }
 
 export async function markMessagesAsRead(ticketId: number): Promise<void> {
-  const response = await fetch(`/api/chat/messages/mark-read`, {
-    method: 'POST',
+  const res = await fetch("/api/chat/messages/mark-read", {
+    method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify({ ticketId }),
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Erro ao marcar mensagens como lidas')
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Erro ao marcar mensagens como lidas");
   }
 }
 
 export async function startChat(ticketId: number): Promise<ChatInfo> {
-  const response = await fetch(`/api/chat/tickets/${ticketId}/start`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-  })
+  console.log("Iniciando chat para o ticket:", ticketId);
 
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Erro ao iniciar chat')
+  const ticket = await getTicketById(ticketId);
+  if (!ticket || !ticket.title) {
+    throw new Error("Ticket inválido ou não encontrado");
   }
-
-  const result = await response.json()
-  return result.data
+  console.log("Ticket encontrado:", ticket);
+  const content =
+    `Olá, você é um chat especializado em suporte TI que me auxiliará na solução do meu problema: ` +
+    `"${ticket.title}" — ${ticket.description}. ` +
+    `Por favor, seja objetivo e claro, dando soluções práticas e diretas.`;
+  console.log("Conteúdo da mensagem:", content);
+    const res = await fetch(`/api/chat/tickets/${ticketId}/start`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ content }),
+  });
+  console.log("Resposta do servidor:", res.status, res.statusText);
+  const payload = await res.json();
+  console.log("Payload recebido:", payload);
+  if (!res.ok) throw new Error(payload.message || "Erro ao iniciar chat");
+  return payload.data as ChatInfo;
 }
 
 export async function getUnreadChats(): Promise<any[]> {
-  const response = await fetch(`/api/chat/unread`, {
+  const res = await fetch("/api/chat/unread", {
     headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Erro ao buscar chats não lidos')
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Erro ao buscar chats não lidos");
   }
-
-  const result = await response.json()
-  return result.data
+  return (await res.json()).data;
 }
 
-export async function getRecentChats(limit: number = 10): Promise<any[]> {
-  const response = await fetch(`/api/chat/recent?limit=${limit}`, {
+export async function getRecentChats(limit = 10): Promise<any[]> {
+  const res = await fetch(`/api/chat/recent?limit=${limit}`, {
     headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Erro ao buscar chats recentes')
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Erro ao buscar chats recentes");
   }
-
-  const result = await response.json()
-  return result.data
+  return (await res.json()).data;
 }
 
 export async function getChatStatistics(ticketId: number): Promise<any> {
-  const response = await fetch(`/api/chat/tickets/${ticketId}/statistics`, {
-    headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Erro ao buscar estatísticas')
+  const res = await fetch(
+    `/api/chat/tickets/${ticketId}/statistics`,
+    { headers: getAuthHeaders() }
+  );
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Erro ao buscar estatísticas");
   }
-
-  const result = await response.json()
-  return result.data
+  return (await res.json()).data;
 }
 
 export async function searchMessages(searchRequest: any): Promise<any> {
-  const response = await fetch(`/api/chat/search`, {
-    method: 'POST',
+  const res = await fetch("/api/chat/search", {
+    method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(searchRequest),
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Erro ao buscar mensagens')
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Erro ao buscar mensagens");
   }
-
-  const result = await response.json()
-  return result.data
+  return (await res.json()).data;
 }

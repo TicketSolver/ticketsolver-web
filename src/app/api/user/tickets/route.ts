@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from "next-auth";
 import { nextAuthConfig } from "@/lib/nextAuth";
 
-const backendUrl = process.env.BACKEND_URL || 'http://localhost:5271'
+const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5271'
 
 export async function GET(request: NextRequest) {
     try {

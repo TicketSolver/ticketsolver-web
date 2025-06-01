@@ -4,29 +4,29 @@ export const menuLinks = {
   admin: [
     {
       title: "Dashboard",
-      href: "/dashboard/admin",
+      href: "/t/admin",
       icon: LayoutDashboard
     },
     {
       title: "Usuários",
-      href: "/dashboard/admin/users",
+      href: "/t/admin/users",
       icon: Users
     },
     {
       title: "Chamados",
-      href: "/dashboard/admin/tickets",
+      href: "/t/admin/tickets",
       icon: Ticket
     },
-    {
-      title: "Relatórios",
-      href: "/dashboard/admin/reports",
-      icon: BarChart
-    },
-    {
-      title: "Configurações",
-      href: "/dashboard/admin/settings",
-      icon: Settings
-    }
+    // {
+    //   title: "Relatórios",
+    //   href: "/t/admin/reports",
+    //   icon: BarChart
+    // },
+    // {
+    //   title: "Configurações",
+    //   href: "/t/admin/settings",
+    //   icon: Settings
+    // }
   ],
   technician: [
     {
@@ -66,6 +66,11 @@ export const menuLinks = {
       href: "/t/user/tickets",
       icon: Ticket
     },
+    // {
+    //   title: "Permitir Acesso",
+    //   href: "/t/user/dashboard/grant-access",
+    //   icon: Monitor
+    // }
     // {
     //   title: "Permitir Acesso",
     //   href: "/t/user/dashboard/grant-access",

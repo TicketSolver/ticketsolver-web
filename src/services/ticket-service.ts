@@ -1,5 +1,8 @@
 import { mockTickets } from "@/mocks/user-dashboard"
 import { TicketRequest, Ticket } from "@/types/ticket"
+import { getServerSession } from "next-auth"
+import { nextAuthConfig } from "@/lib/nextAuth"
+import { getAuthHeaders } from "./auth-client";
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK_API === "false"
 
 async function delay(ms: number) {
@@ -30,11 +33,11 @@ export async function getTechnicianTickets(pagination: PaginatedQuery, isHistory
 
 
 export async function getUserTickets(pagination: PaginatedQuery, isHistory?: boolean) {
-    if (USE_MOCK) {
-        await delay(500)
-        return { data: { items: mockTickets, count: 4 }, success: true };
-    }
-
+    // if (USE_MOCK) {
+    //     await delay(500)
+    //     return { data: { items: mockTickets, count: 4 }, success: true };
+    // }
+    console.log('Fetching user tickets', pagination, isHistory);
     return await getTickets('user', pagination, isHistory ? '&history=true' : '');
 }
 
@@ -142,4 +145,16 @@ export async function assignUsersToTicket(ticketId: number, userIds: string[]) {
         throw new Error("Falha ao obter usuários de ticket")
     }
     return res.json();
+}
+
+export async function getTicketById(ticketId: number): Promise<Ticket> {
+    console.log("Buscando ticket por ID:", ticketId);
+    const res = await fetch(`/api/user/tickets/${ticketId}`, {
+        headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Erro ao buscar ticket");
+    }
+    return (await res.json()).data as Ticket;
 }
