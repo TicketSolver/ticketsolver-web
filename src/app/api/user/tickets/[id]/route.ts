@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { nextAuthConfig } from '@/lib/nextAuth'
 
+
 const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL!
 
 export async function GET(

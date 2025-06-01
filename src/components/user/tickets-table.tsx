@@ -101,7 +101,7 @@ function UserTicketItem({ ticket }: { ticket: Ticket }) {
       </TableCell>
       <TableCell>
         <Link href={`/t/user/tickets/${ticket.id}`}>
-          <Button variant="ghost" size="icon">
+          <Button variant="outline" size="icon">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </Link>

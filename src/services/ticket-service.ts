@@ -108,7 +108,44 @@ export async function uploadAttachment(ticketId: string | number, file: File) {
     return res.json();
 }
 
+export async function getTicketUsers(ticketId: number) {
+    const res = await fetch(`/api/tickets/${ticketId}/attached-users`,);
+    if (!res.ok) {
+        throw new Error("Falha ao obter usuários de ticket")
+    }
+    return res.json();
+}
 
+export async function getUnassingedTechnicians(ticketId: number) {
+    const res = await fetch(`/api/tickets/${ticketId}/attached-users/available`,);
+    if (!res.ok) {
+        throw new Error("Falha ao obter usuários de ticket")
+    }
+    return res.json();
+}
+
+export async function unassingUser(ticketId: number, userId: string) {
+    const res = await fetch(`/api/tickets/${ticketId}/unassing`, {
+        method: 'PATCH',
+        body: JSON.stringify({ userId }),
+    });
+
+    if (!res.ok) {
+        throw new Error("Falha ao obter usuários de ticket")
+    }
+    return res.json();
+}
+
+export async function assignUsersToTicket(ticketId: number, userIds: string[]) {
+    const res = await fetch(`/api/tickets/${ticketId}/attached-users`, {
+        method: 'POST',
+        body: JSON.stringify({ userIds }),
+    });
+    if (!res.ok) {
+        throw new Error("Falha ao obter usuários de ticket")
+    }
+    return res.json();
+}
 
 export async function getTicketById(ticketId: number): Promise<Ticket> {
     console.log("Buscando ticket por ID:", ticketId);

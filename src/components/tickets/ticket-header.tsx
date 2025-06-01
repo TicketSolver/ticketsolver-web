@@ -1,6 +1,6 @@
 'use client'
 
-import { TicketCategory } from "@/types/ticket";
+import { Ticket, TicketCategory } from "@/types/ticket";
 import {
   Calendar, Clock, Tag, Ticket as IconTicket,
 } from "lucide-react";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { TicketPriorityBadge } from "../ui/ticket-priority-badge";
 import { TicketStatusBadge } from "../ui/ticket-status-badge";
 
-export function TicketHeader({ ticket }: { ticket: any }) {
+export function TicketHeader({ ticket }: { ticket: Ticket }) {
   return (
     <Card>
       <CardHeader>
@@ -44,12 +44,12 @@ export function TicketHeader({ ticket }: { ticket: any }) {
           <p className="flex items-center gap-2">
             <Tag /> Categoria:
             <span className="font-medium">
-              {TicketCategory[ticket.category]}
+              {TicketCategory[ticket.defTicketCategoryId]}
             </span>
           </p>
           <p className="flex items-center gap-2">
             <Tag /> Prioridade:
-            <TicketPriorityBadge priority={ticket.priority} />
+            <TicketPriorityBadge priority={ticket.defTicketPriorityId} />
           </p>
           <p className="flex items-center gap-2">
             <IconTicket /> Status:

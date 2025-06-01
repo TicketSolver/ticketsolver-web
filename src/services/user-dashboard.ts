@@ -81,12 +81,7 @@ export async function fetchTicketById(ticketId: number): Promise<Ticket | null> 
   try {
     console.log(`Buscando ticket específico: ${ticketId}`);
         
-    const response = await fetch(`/api/user/tickets/${ticketId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    const response = await fetch(`/api/user/tickets/${ticketId}`);
         
     if (!response.ok) {
       console.warn(`Erro ao buscar ticket ${ticketId}: ${response.status}`);
