@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        const accessToken = (session as any).accessToken;
+        const accessToken = await session.user.token;
         if (!accessToken) {
             return NextResponse.json(
                 { error: 'Token de acesso não encontrado' },

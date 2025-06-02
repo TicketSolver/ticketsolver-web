@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const page     = searchParams.get("page")     ?? "1";
   const pageSize = searchParams.get("pageSize") ?? "5";
-  const tenantId = await session.user.tenantId;
+  const tenantId =  await session.user.tenantId;
   const token    = await session.user.token;
   console.log("acesso de all tickets")
   const url = `${BACKEND}/api/Admin/api/tenants/${tenantId}/tickets` +
@@ -34,3 +34,4 @@ export async function GET(req: NextRequest) {
   const data = await res.json();
   return NextResponse.json(data);
 }
+

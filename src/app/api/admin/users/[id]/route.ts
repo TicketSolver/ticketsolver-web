@@ -22,7 +22,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     if ((session.user as any)?.role !== 'admin') {
         return NextResponse.json({ message: 'Forbidden: Insufficient privileges' }, { status: 403 });
     }
-    const token = (session as any).accessToken;
+    const tenantId = await session.user.tenantId;
+    const token = await session.user.token;
     if (!token) {
         console.error('API Route PATCH Error: accessToken not found in session. Ensure session callback populates it.');
         return NextResponse.json({ message: 'Internal Server Error: Session misconfiguration (missing token)' }, { status: 500 });
@@ -66,9 +67,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         }
 
         const backendResponseData: any | BackendErrorResponse = await backendResponse.json().catch((e) => {
-            // This catch is for backendResponse.json() failing, e.g. if backend sent non-JSON response with error status
             console.error('Failed to parse backend JSON response:', e);
-            return null; // Allows further checks on backendResponse.ok
+            return null;
         });
 
 
@@ -107,7 +107,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     if ((session.user as any)?.role !== 'admin') {
         return NextResponse.json({ message: 'Forbidden: Insufficient privileges' }, { status: 403 });
     }
-    const token = (session as any).accessToken;
+    const token = await session.user.token;
     if (!token) {
         console.error('API Route DELETE Error: accessToken not found in session.');
         return NextResponse.json({ message: 'Internal Server Error: Session misconfiguration (missing token)' }, { status: 500 });
