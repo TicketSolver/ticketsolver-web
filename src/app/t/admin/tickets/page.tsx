@@ -71,29 +71,28 @@ export default function TicketsPage() {
 
   const { data: rawData, isLoading, isError } = useAdminTickets(page, perPage)
 
-  // marca o componente como montado para só renderizar tabela no client
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
-  // normaliza o rawData para o shape que o componente consome
-  const ticketsData = useMemo(() => {
-    if (!rawData) return { count: 0, items: [] as TicketUI[] }
-    return {
-      count: rawData.count,
-      items: rawData.items.map((t) => ({
-        id: t.id,
-        title: t.title,
-        category: t.category.toString(),
-        requesterName: typeof t.createdBy === "string" ? t.createdBy : t.createdBy.name,
-        department: "",  // campo não disponível no payload
-        status: mapStatusCode(t.status as TicketStatus),
-        priority: t.priority.toString(),
-        technician: t.assignedby?.name ?? null,
-        created: t.createdAt,
-      })),
-    }
-  }, [rawData])
+ const ticketsData = useMemo(() => {
+  const count = rawData?.count ?? 0
+  const itemsArray = Array.isArray(rawData?.items) ? rawData.items : []
+  const items: TicketUI[] = itemsArray.map((t) => ({
+    id: t.id,
+    title: t.title,
+    category: t.category.toString(),
+    requesterName:
+      typeof t.createdBy === "string" ? t.createdBy : t.createdBy.name,
+    department: "",
+    status: mapStatusCode(t.status as TicketStatus),
+    priority: t.priority,
+    technician: t.assignedby?.name ?? null,
+    created: t.createdAt,
+  }))
+
+  return { count, items }
+}, [rawData])
 
   useEffect(() => {
     updateTotal(ticketsData.count)
@@ -233,9 +232,15 @@ export default function TicketsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
+  {filteredItems.length === 0 ? (
+    <div className="py-10 text-center text-gray-500">
+      Não há tickets criados no momento.
+    </div>
+  ) : (
+    <>
+      <Table>
+        <TableHeader>
+                <TableRow>
                 <TableHead>ID</TableHead>
                 <TableHead>Título</TableHead>
                 <TableHead>Usuário</TableHead>
@@ -245,11 +250,11 @@ export default function TicketsPage() {
                 <TableHead>Criado em</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredItems.map((ticket) => (
-                <TableRow key={ticket.id}>
-                  <TableCell className="font-medium">{ticket.id}</TableCell>
+        </TableHeader>
+        <TableBody>
+          {filteredItems.map((ticket) => (
+            <TableRow key={ticket.id}>
+              <TableCell className="font-medium">{ticket.id}</TableCell>
                   <TableCell>
                     <div>
                       <p className="font-medium">{ticket.title}</p>
@@ -262,7 +267,7 @@ export default function TicketsPage() {
                       <p className="text-xs text-muted-foreground">{ticket.department}</p>
                     </div>
                   </TableCell>
-                  <TableCell>{getStatusBadge(ticket.status)}</TableCell>
+                  <TableCell>{getStatusBadge(ticket.status as any)}</TableCell>
                   <TableCell>{getPriorityBadge(mapPriorityCode(ticket.priority))}</TableCell>
                   <TableCell>
                     {ticket.technician ? (
@@ -307,50 +312,52 @@ export default function TicketsPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
-          {/* Paginação */}
-          <div className="mt-4 flex items-center justify-between">
-            <p>
-              Mostrando {filteredItems.length} de {total}
-            </p>
-            <div className="flex items-center space-x-2">
-              <Button
-                size="sm"
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-              >
-                Anterior
-              </Button>
-              <span>Página {page}</span>
-              <Button
-                size="sm"
-                disabled={page * perPage >= total}
-                onClick={() => setPage(page + 1)}
-              >
-                Próxima
-              </Button>
-              <Select
-                value={perPage.toString()}
-                onValueChange={(v) => setPerPage(Number(v))}
-              >
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[5, 10, 20, 50].map((n) => (
-                    <SelectItem key={n} value={n.toString()}>
-                      {n} / página
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
+      {/* Paginação */}
+      <div className="mt-4 flex items-center justify-between">
+        <p>
+          Mostrando {filteredItems.length} de {total}
+        </p>
+        <div className="flex items-center space-x-2">
+          <Button
+            size="sm"
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+          >
+            Anterior
+          </Button>
+          <span>Página {page}</span>
+          <Button
+            size="sm"
+            disabled={page * perPage >= total}
+            onClick={() => setPage(page + 1)}
+          >
+            Próxima
+          </Button>
+          <Select
+            value={perPage.toString()}
+            onValueChange={(v) => setPerPage(Number(v))}
+          >
+            <SelectTrigger className="w-24">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[5, 10, 20, 50].map((n) => (
+                <SelectItem key={n} value={n.toString()}>
+                  {n} / página
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </>
+  )}
+</CardContent>
       </Card>
     </DashboardShell>
   )

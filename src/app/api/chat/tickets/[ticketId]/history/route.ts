@@ -14,7 +14,7 @@ export async function GET(
   if (!session) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   }
-  const token = session.user.token
+  const token = await session.user.token
 
   const url = new URL(request.url)
   const page = url.searchParams.get('page') || '1'

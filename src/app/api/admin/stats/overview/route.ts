@@ -10,8 +10,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const tenantId = (session as any).user.tenantId;
-  const token    = (session as any).accessToken;
+  const tenantId = await session.user.tenantId;
+  const token    =  await session.user.token;
   const url      = `${BACKEND}/api/Admin/overview/${tenantId}/stats/`;
   
   const res = await fetch(url, {

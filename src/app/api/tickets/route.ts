@@ -65,13 +65,14 @@ export async function POST(request: NextRequest) {
         const session = await getServerSession(nextAuthConfig);
         
         if (!session) {
+            console.error('Sessão não encontrada')
             return NextResponse.json(
                 { error: 'Sessão não encontrada' },
                 { status: 401 }
             )
         }
 
-        const accessToken = (session as any).accessToken;
+        const accessToken = await session.user.token;
         if (!accessToken) {
             return NextResponse.json(
                 { error: 'Token de acesso não encontrado' },
