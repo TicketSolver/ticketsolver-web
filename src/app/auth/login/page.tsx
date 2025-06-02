@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState, useRef } from "react"
@@ -14,10 +13,19 @@ export default function LoginPage() {
   
   useEffect(() => {
     setIsMounted(true)
-    if (toastShownRef.current) return;
+    if(toastShownRef.current){
+      return;
+    } 
     const reset = searchParams?.get("reset")
     const registered = searchParams?.get("registered")
-    if (reset === "success") {
+    const error = searchParams?.get("error")
+    if (error) {
+      toast.error("Erro ao fazer login", {
+        description: "Verifique suas credenciais e tente novamente."
+      })
+      toastShownRef.current = true;
+    }
+    else if (reset === "success") {
       toast.success("Senha redefinida com sucesso!", {
         description: "Você pode agora fazer login com sua nova senha."
       })
